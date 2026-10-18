@@ -23,6 +23,7 @@ import onnxruntime as ort
 
 ROOT = Path(__file__).resolve().parents[1]
 SMART_TURN_PATH = ROOT / "data/hf/pipecat-ai__smart-turn-v3/smart-turn-v3.2-cpu.onnx"
+SMART_TURN_FP32_PATH = ROOT / "data/hf/pipecat-ai__smart-turn-v3/smart-turn-v3.2-gpu.onnx"  # fp32 graph eot-bench used
 HINGLISH_PATH = ROOT / "data/hf/deveshu__hinglish-turn-detector/model_int8.onnx"
 MEL_PATH = ROOT / "data/hf/deveshu__hinglish-turn-detector/mel_filters.npz"
 SR = 16000
@@ -78,8 +79,8 @@ class SmartTurnV32:
 
     name = "smart-turn-v3.2-cpu"
 
-    def __init__(self, threads: int = 1) -> None:
-        self.sess = _session(SMART_TURN_PATH, threads)
+    def __init__(self, threads: int = 1, fp32: bool = False) -> None:
+        self.sess = _session(SMART_TURN_FP32_PATH if fp32 else SMART_TURN_PATH, threads)
         self.last_ms = 0.0
 
     def prob(self, x16k: np.ndarray) -> float:
