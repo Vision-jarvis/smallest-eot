@@ -142,10 +142,8 @@ def matrix(df: pd.DataFrame, names: list[str], drop: frozenset[str]) -> np.ndarr
 
 
 def dev_predictions(df: pd.DataFrame, p: np.ndarray) -> pd.DataFrame:
-    """Hop features + scores -> eot-bench-schema predictions (speech hops score 0, as at runtime)."""
-    return pd.DataFrame(
-        {"id": df["id"], "language": "hi", "span_index": 0, "timestamp": df["t"], "silence_dur": df["silence_dur"], "p_eot": np.where(df["in_speech"] > 0, 0.0, p), "label": df["label"]}
-    )
+    """Hop features + scores -> eot-bench-schema predictions."""
+    return pd.DataFrame({"id": df["id"], "language": "hi", "span_index": 0, "timestamp": df["t"], "silence_dur": df["silence_dur"], "p_eot": p, "label": df["label"]})
 
 
 GRID = [(0.05, 15, 200), (0.05, 31, 300), (0.1, 15, 150), (0.03, 31, 500)]
@@ -160,8 +158,8 @@ def train_variant(variant: str, tr: pd.DataFrame, dev: pd.DataFrame, tag: str = 
     drop = frozenset(cfg["drop_classes"])
     names = cfg["features"]
     head, tr_l, (dev_l,) = add_lexical(tr, [dev], drop)
-    # risk set: hops at which the span is still silent and the VAD agrees (speech hops score 0)
-    trm = tr_l[tr_l.in_speech == 0]
+    # risk set: every hop at which the labelled span is still silent (the hazard's at-risk set)
+    trm = tr_l
     X, y = matrix(trm, names, drop), (trm["label"] == "eot").to_numpy(int)
     Xd = matrix(dev_l, names, drop)
     best = None

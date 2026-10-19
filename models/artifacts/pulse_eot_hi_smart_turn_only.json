@@ -1,0 +1,59 @@
+{
+  "variant": "smart_turn_only",
+  "features": [
+    "sil_s",
+    "st_prob"
+  ],
+  "drop_classes": [],
+  "smart_turn": true,
+  "lexical": null,
+  "hyperparams": {
+    "learning_rate": 0.05,
+    "max_leaf_nodes": 15,
+    "max_iter": 200
+  },
+  "train_data": "60% of smart-turn-data-v3.2-test clips (Hindi TTS + real-human non-Hindi); lexical head on smart-turn train Hindi",
+  "n_train_hops": 15415,
+  "n_train_episodes": 1379,
+  "onnx_max_abs_diff_vs_sklearn": 1.319645503428113e-07,
+  "dev_summary": {
+    "FCR@300": 0.18495934959349594,
+    "FCR@600": 0.04878048780487805,
+    "Lat@5%": 0.5921971252566735,
+    "Lat@10%": 0.36057494866529777,
+    "auc": 0.9739737233101283,
+    "ap": 0.9766069237538841
+  },
+  "dev_by_source": {
+    "hi_tts": {
+      "FCR@300": 0.1318181818181818,
+      "Lat@5%": 0.5161290322580645,
+      "auc": 0.9841550586510264
+    },
+    "human": {
+      "FCR@300": 0.3897058823529412,
+      "Lat@5%": 0.6004184100418413,
+      "auc": 0.9647658749692345
+    }
+  },
+  "dev_frozen_knobs_lat5": {
+    "threshold": 0.89,
+    "action_delay": 0.3,
+    "timeout": 3.0,
+    "cutoff_rate": 0.04878048780487805,
+    "mean_latency": 0.5921971252566735,
+    "detect_rate": 0.9240246406570842,
+    "n_hold": 492.0,
+    "n_eot": 487.0
+  },
+  "dev_frozen_knobs_fcr300": {
+    "threshold": 0.56,
+    "action_delay": 0.2,
+    "timeout": 1.0,
+    "cutoff_rate": 0.18495934959349594,
+    "mean_latency": 0.2997946611909651,
+    "detect_rate": 0.971252566735113,
+    "n_hold": 492.0,
+    "n_eot": 487.0
+  }
+}

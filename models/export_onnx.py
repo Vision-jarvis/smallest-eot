@@ -19,6 +19,14 @@ import onnx
 from onnx import TensorProto, helper
 
 
+def _f32_floor(thr: float) -> float:
+    """Largest float32 <= thr, so `x <= thr32` equals `x <= thr` for every float32 input x."""
+    t = np.float32(thr)
+    if float(t) > thr:
+        t = np.nextafter(t, np.float32(-np.inf))
+    return float(t)
+
+
 def hgb_to_onnx(model, n_features: int) -> onnx.ModelProto:
     if model.n_trees_per_iteration_ != 1:
         raise ValueError("binary classifiers only")
@@ -40,7 +48,7 @@ def hgb_to_onnx(model, n_features: int) -> onnx.ModelProto:
                 attrs["target_weights"].append(float(nd["value"]))
             else:
                 attrs["nodes_featureids"].append(int(nd["feature_idx"]))
-                attrs["nodes_values"].append(float(nd["num_threshold"]))
+                attrs["nodes_values"].append(_f32_floor(float(nd["num_threshold"])))
                 attrs["nodes_modes"].append("BRANCH_LEQ")
                 attrs["nodes_truenodeids"].append(int(nd["left"]))
                 attrs["nodes_falsenodeids"].append(int(nd["right"]))

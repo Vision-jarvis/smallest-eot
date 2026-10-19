@@ -1,0 +1,75 @@
+{
+  "operating_points": {
+    "fcr_at_300ms": {
+      "threshold": 0.43,
+      "action_delay": 0.3,
+      "timeout": 1.0,
+      "cutoff_rate": 0.4945652173913043,
+      "mean_latency": 0.29999999999999993,
+      "detect_rate": 1.0,
+      "n_hold": 552.0,
+      "n_eot": 400.0
+    },
+    "fcr_at_600ms": {
+      "threshold": 0.68,
+      "action_delay": 0.5,
+      "timeout": 1.0,
+      "cutoff_rate": 0.06340579710144928,
+      "mean_latency": 0.5925,
+      "detect_rate": 0.865,
+      "n_hold": 552.0,
+      "n_eot": 400.0
+    },
+    "lat_at_5pct": {
+      "threshold": 0.53,
+      "action_delay": 0.6,
+      "timeout": 1.0,
+      "cutoff_rate": 0.043478260869565216,
+      "mean_latency": 0.6419999999999999,
+      "detect_rate": 0.9225,
+      "n_hold": 552.0,
+      "n_eot": 400.0
+    },
+    "lat_at_10pct": {
+      "threshold": 0.51,
+      "action_delay": 0.5,
+      "timeout": 1.0,
+      "cutoff_rate": 0.09782608695652174,
+      "mean_latency": 0.5407500000000001,
+      "detect_rate": 0.945,
+      "n_hold": 552.0,
+      "n_eot": 400.0
+    }
+  },
+  "FCR@300": 0.4945652173913043,
+  "FCR@600": 0.06340579710144928,
+  "Lat@5%": 0.6419999999999999,
+  "Lat@10%": 0.5407500000000001,
+  "Detect@5%": 0.9225,
+  "auc": 0.8231770833333333,
+  "ap": 0.7513550212415048,
+  "n_hold": 552,
+  "n_eot": 400,
+  "frozen_knobs": {
+    "threshold": 0.89,
+    "action_delay": 0.3,
+    "timeout": 3.0
+  },
+  "frozen_result": {
+    "fcr": 0.14492753623188406,
+    "mean_latency": 1.01575,
+    "detect_rate": 0.7725
+  },
+  "detector": "pulse_eot_hi:smart_turn_only",
+  "set": "eot_bench_hi",
+  "condition": "clean",
+  "n_turns": 400,
+  "score_point": null,
+  "uses_text": false,
+  "wall_s": 54.9,
+  "ms_per_hop_p50": 2.7138999867020175,
+  "ms_per_hop_p95": 7.24209000982226,
+  "ms_per_hop_max": 701.4185999942129,
+  "ms_per_scored_hop_p95": 7.24209000982226,
+  "note_timing": "wall clock with 14 parallel worker processes on one machine; see eval/bench_cpu.py for the single-core benchmark"
+}

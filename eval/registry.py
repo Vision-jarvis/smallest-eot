@@ -17,7 +17,7 @@ def make(name: str):
     if name.startswith("pulse_eot_hi"):
         from models.pulse_eot_hi import PulseEoTHi
 
-        # e.g. "pulse_eot_hi" (default model) or "pulse_eot_hi:audio_only" (ablation)
-        variant = name.split(":", 1)[1] if ":" in name else "full"
+        # "pulse_eot_hi" = v0.1 stacked (default); "pulse_eot_hi:full" = v0 (no Smart Turn); others are ablations
+        variant = name.split(":", 1)[1] if ":" in name else "stacked"
         return PulseEoTHi.load(variant)
     raise KeyError(name)

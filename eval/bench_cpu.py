@@ -36,9 +36,11 @@ def rss_mb() -> float:
 
 def artifact_mb(detector: str) -> float:
     if detector.startswith("pulse_eot_hi"):
-        variant = detector.split(":", 1)[1] if ":" in detector else "full"
+        variant = detector.split(":", 1)[1] if ":" in detector else "stacked"
         files = list((ROOT / "models/artifacts").glob(f"pulse_eot_hi_{variant}.*")) + list((ROOT / "models/artifacts").glob(f"pulse_eot_hi_{variant}_lexical.npz"))
         files.append(ROOT / "data/hf/onnx-community__silero-vad/onnx/model.onnx")
+        if json.loads((ROOT / "models/artifacts" / f"pulse_eot_hi_{variant}.json").read_text()).get("smart_turn"):
+            files.append(ROOT / "data/hf/pipecat-ai__smart-turn-v3/smart-turn-v3.2-cpu.onnx")
     elif detector.startswith("smart_turn"):
         files = [ROOT / "data/hf/pipecat-ai__smart-turn-v3/smart-turn-v3.2-cpu.onnx"]
     else:

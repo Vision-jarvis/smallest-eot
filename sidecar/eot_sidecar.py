@@ -99,7 +99,7 @@ class SidecarCore:
         self._overlap_buf = []
 
 
-async def run(wav: str, base: str, key: str, model_variant: str = "full") -> None:
+async def run(wav: str, base: str, key: str, model_variant: str = "stacked") -> None:
     import soundfile as sf
     import websockets
 
@@ -138,7 +138,7 @@ def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--wav", required=True)
     ap.add_argument("--base", default=PULSE_WS)
-    ap.add_argument("--variant", default="full")
+    ap.add_argument("--variant", default="stacked")
     a = ap.parse_args()
     key = os.environ.get("SMALLEST_API_KEY", "")
     if a.base == PULSE_WS and not key:

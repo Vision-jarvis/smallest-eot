@@ -1,0 +1,71 @@
+{
+  "variant": "stacked_audio_only",
+  "features": [
+    "sil_s",
+    "speech_8s",
+    "vad_p_last",
+    "vad_p_mean_160ms",
+    "e_last_rel",
+    "f0_final_rel",
+    "f0_slope",
+    "final_voiced_ms",
+    "gap_since_voiced_ms",
+    "energy_slope",
+    "energy_final_rel",
+    "voiced_ratio_2s",
+    "rate_peaks_per_s",
+    "st_prob"
+  ],
+  "drop_classes": [],
+  "smart_turn": true,
+  "lexical": null,
+  "hyperparams": {
+    "learning_rate": 0.1,
+    "max_leaf_nodes": 15,
+    "max_iter": 150
+  },
+  "train_data": "60% of smart-turn-data-v3.2-test clips (Hindi TTS + real-human non-Hindi); lexical head on smart-turn train Hindi",
+  "n_train_hops": 15415,
+  "n_train_episodes": 1379,
+  "onnx_max_abs_diff_vs_sklearn": 1.3182705815850682e-07,
+  "dev_summary": {
+    "FCR@300": 0.2032520325203252,
+    "FCR@600": 0.046747967479674794,
+    "Lat@5%": 0.5767967145790553,
+    "Lat@10%": 0.4268993839835729,
+    "auc": 0.9713485584547837,
+    "ap": 0.9753122233726479
+  },
+  "dev_by_source": {
+    "hi_tts": {
+      "FCR@300": 0.20454545454545456,
+      "Lat@5%": 0.5141129032258065,
+      "auc": 0.9737719941348975
+    },
+    "human": {
+      "FCR@300": 0.23897058823529413,
+      "Lat@5%": 0.606694560669456,
+      "auc": 0.9697268028550332
+    }
+  },
+  "dev_frozen_knobs_lat5": {
+    "threshold": 0.94,
+    "action_delay": 0.2,
+    "timeout": 2.5,
+    "cutoff_rate": 0.046747967479674794,
+    "mean_latency": 0.5767967145790553,
+    "detect_rate": 0.8952772073921971,
+    "n_hold": 492.0,
+    "n_eot": 487.0
+  },
+  "dev_frozen_knobs_fcr300": {
+    "threshold": 0.75,
+    "action_delay": 0.2,
+    "timeout": 1.0,
+    "cutoff_rate": 0.2032520325203252,
+    "mean_latency": 0.2983572895277208,
+    "detect_rate": 0.9548254620123203,
+    "n_hold": 492.0,
+    "n_eot": 487.0
+  }
+}

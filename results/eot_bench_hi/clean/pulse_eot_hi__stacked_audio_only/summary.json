@@ -1,0 +1,75 @@
+{
+  "operating_points": {
+    "fcr_at_300ms": {
+      "threshold": 0.6,
+      "action_delay": 0.2,
+      "timeout": 1.0,
+      "cutoff_rate": 0.4076086956521739,
+      "mean_latency": 0.2935000000000001,
+      "detect_rate": 0.9475,
+      "n_hold": 552.0,
+      "n_eot": 400.0
+    },
+    "fcr_at_600ms": {
+      "threshold": 0.8,
+      "action_delay": 0.5,
+      "timeout": 1.0,
+      "cutoff_rate": 0.06702898550724638,
+      "mean_latency": 0.5947499999999999,
+      "detect_rate": 0.86,
+      "n_hold": 552.0,
+      "n_eot": 400.0
+    },
+    "lat_at_5pct": {
+      "threshold": 0.92,
+      "action_delay": 0.5,
+      "timeout": 1.0,
+      "cutoff_rate": 0.04891304347826087,
+      "mean_latency": 0.647,
+      "detect_rate": 0.7675,
+      "n_hold": 552.0,
+      "n_eot": 400.0
+    },
+    "lat_at_10pct": {
+      "threshold": 0.41,
+      "action_delay": 0.5,
+      "timeout": 1.0,
+      "cutoff_rate": 0.09782608695652174,
+      "mean_latency": 0.5159999999999999,
+      "detect_rate": 0.9825,
+      "n_hold": 552.0,
+      "n_eot": 400.0
+    }
+  },
+  "FCR@300": 0.4076086956521739,
+  "FCR@600": 0.06702898550724638,
+  "Lat@5%": 0.647,
+  "Lat@10%": 0.5159999999999999,
+  "Detect@5%": 0.7675,
+  "auc": 0.8352173913043478,
+  "ap": 0.7482218442291624,
+  "n_hold": 552,
+  "n_eot": 400,
+  "frozen_knobs": {
+    "threshold": 0.94,
+    "action_delay": 0.2,
+    "timeout": 2.5
+  },
+  "frozen_result": {
+    "fcr": 0.15217391304347827,
+    "mean_latency": 0.8902499999999999,
+    "detect_rate": 0.7525
+  },
+  "detector": "pulse_eot_hi:stacked_audio_only",
+  "set": "eot_bench_hi",
+  "condition": "clean",
+  "n_turns": 400,
+  "score_point": null,
+  "uses_text": false,
+  "wall_s": 51.1,
+  "ms_per_hop_p50": 2.2765999965486117,
+  "ms_per_hop_p95": 6.5717700053937715,
+  "ms_per_hop_max": 588.8165999858757,
+  "ms_per_scored_hop_p95": 6.5717700053937715,
+  "note_timing": "wall clock with 14 parallel worker processes on one machine; see eval/bench_cpu.py for the single-core benchmark"
+}

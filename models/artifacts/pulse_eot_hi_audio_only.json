@@ -3,6 +3,9 @@
   "features": [
     "sil_s",
     "speech_8s",
+    "vad_p_last",
+    "vad_p_mean_160ms",
+    "e_last_rel",
     "f0_final_rel",
     "f0_slope",
     "final_voiced_ms",
@@ -15,38 +18,38 @@
   "drop_classes": [],
   "lexical": null,
   "hyperparams": {
-    "learning_rate": 0.1,
+    "learning_rate": 0.05,
     "max_leaf_nodes": 15,
-    "max_iter": 150
+    "max_iter": 200
   },
-  "n_train_hops": 17621,
-  "onnx_max_abs_diff_vs_sklearn": 1.1646014846933284e-07,
+  "n_train_hops": 19571,
+  "onnx_max_abs_diff_vs_sklearn": 1.3052545494440793e-07,
   "n_train_episodes": 1772,
   "dev_summary": {
-    "FCR@300": 0.44107142857142856,
-    "FCR@600": 0.18214285714285713,
-    "Lat@5%": 1.239504132231405,
-    "Lat@10%": 0.8130578512396696,
-    "auc": 0.9221015348288075,
-    "ap": 0.9224781808434794
+    "FCR@300": 0.4446428571428571,
+    "FCR@600": 0.175,
+    "Lat@5%": 1.2168595041322314,
+    "Lat@10%": 0.796198347107438,
+    "auc": 0.9390643447461628,
+    "ap": 0.9324654757447413
   },
   "dev_frozen_knobs_lat5": {
-    "threshold": 0.93,
+    "threshold": 0.92,
     "action_delay": 0.8,
     "timeout": 2.0,
-    "cutoff_rate": 0.05,
-    "mean_latency": 1.239504132231405,
-    "detect_rate": 0.7090909090909091,
+    "cutoff_rate": 0.048214285714285716,
+    "mean_latency": 1.2168595041322314,
+    "detect_rate": 0.7520661157024794,
     "n_hold": 560.0,
     "n_eot": 605.0
   },
   "dev_frozen_knobs_fcr300": {
-    "threshold": 0.45,
+    "threshold": 0.55,
     "action_delay": 0.2,
     "timeout": 1.0,
-    "cutoff_rate": 0.44107142857142856,
-    "mean_latency": 0.29818181818181816,
-    "detect_rate": 0.9735537190082645,
+    "cutoff_rate": 0.4446428571428571,
+    "mean_latency": 0.2968595041322314,
+    "detect_rate": 0.9785123966942149,
     "n_hold": 560.0,
     "n_eot": 605.0
   }

@@ -13,7 +13,9 @@ At every 100 ms hop during user silence it fuses
 in a small gradient-boosted tree ensemble that outputs p_eot(t) = P(turn over | still silent
 at t, features). Because training examples are drawn at every silence step at which the span
 is still silent (the risk set), the classifier is a discrete-time hazard model over silence
-duration. During speech it outputs 0. The head ships as ONNX (models/artifacts/).
+duration. It is scored at every hop, including while the VAD still reports speech (the VAD lags the
+true acoustic offset by 100 to 300 ms, and gating on it made v0 unable to act in the first
+300 ms of a pause). The head ships as ONNX (models/artifacts/).
 """
 
 from __future__ import annotations
@@ -34,13 +36,12 @@ MISSING = -999.0  # tree-friendly sentinel (also keeps the ONNX graph free of Na
 
 LEX_CLASSES = [c for c in CLASSES if c != "NONE"]
 FEATURES = (
-    ["sil_s", "speech_8s", *PROSODY]
+    ["sil_s", "speech_8s", "vad_p_last", "vad_p_mean_160ms", "e_last_rel", *PROSODY]
     + ["has_text", "lex_logit", "n_tokens", "asr_closed", "since_partial_s", "tag_q"]
     + [f"c1_{c}" for c in LEX_CLASSES]
     + [f"c2_{c}" for c in LEX_CLASSES]
 )
-AUDIO_FEATURES = ["sil_s", "speech_8s", *PROSODY]
-ST_SCORE_AT_S = 0.2  # Smart Turn is called once per pause, after 200 ms of VAD silence
+AUDIO_FEATURES = ["sil_s", "speech_8s", "vad_p_last", "vad_p_mean_160ms", "e_last_rel", *PROSODY]
 
 VARIANTS = {
     "full": {"features": FEATURES, "drop_classes": []},
@@ -83,8 +84,8 @@ class FeatureState:
         self.pros.push(frame)
         if self.encoder is not None:
             self.ring.push(frame)
-            if self.vad.in_speech:
-                self._st = float("nan")
+            if self.vad.probs and self.vad.probs[-1][1] >= 0.5:
+                self._st = float("nan")  # speech again: the next pause gets a fresh call
 
     def push_partial(self, p: Partial) -> None:
         self.partials.append(p)
@@ -97,9 +98,16 @@ class FeatureState:
         f: dict[str, float] = {"sil_s": sil}
         probs = self.vad.probs[-250:]  # last 8 s of 32 ms windows
         f["speech_8s"] = float(sum(1 for _, p in probs if p >= 0.5) * self.vad.win / self.sr)
+        # raw VAD evidence: the hysteresis VAD lags the true offset by 100 to 300 ms, so the
+        # head also sees the latest window probabilities and the energy drop directly
+        f["vad_p_last"] = float(probs[-1][1]) if probs else float("nan")
+        f["vad_p_mean_160ms"] = float(np.mean([p for _, p in probs[-5:]])) if probs else float("nan")
+        e = np.array(self.pros.energy)
+        f["e_last_rel"] = float(e[-5:].mean() - np.percentile(e, 90)) if len(e) >= 10 else float("nan")
         f.update(self.pros.features(sil))
         if self.encoder is not None:
-            if not np.isfinite(self._st) and sil >= ST_SCORE_AT_S and not self.vad.in_speech:
+            quiet = len(probs) >= 6 and all(p < 0.5 for _, p in probs[-6:])  # ~200 ms of raw non-speech
+            if not np.isfinite(self._st) and quiet:
                 self._st = self.encoder.prob(self.ring.buf)
             f["st_prob"] = self._st
         text, closed = visible_text(self.partials, t)
@@ -168,7 +176,5 @@ class PulseEoTHi:
         return self.state.vad.trailing_silence(t)
 
     def score(self, t: float, need: bool) -> float:
-        if self.state.in_speech():
-            return 0.0
         x = vectorise(self.state.features(t), self.names)[None]
         return float(self.sess.run(None, {self.input: x})[0][0, 0])

@@ -1,0 +1,75 @@
+{
+  "operating_points": {
+    "fcr_at_300ms": {
+      "threshold": 0.0,
+      "action_delay": 0.3,
+      "timeout": 1.0,
+      "cutoff_rate": 0.4945652173913043,
+      "mean_latency": 0.29999999999999993,
+      "detect_rate": 1.0,
+      "n_hold": 552.0,
+      "n_eot": 400.0
+    },
+    "fcr_at_600ms": {
+      "threshold": 0.0,
+      "action_delay": 0.6,
+      "timeout": 1.0,
+      "cutoff_rate": 0.07427536231884058,
+      "mean_latency": 0.5999999999999999,
+      "detect_rate": 1.0,
+      "n_hold": 552.0,
+      "n_eot": 400.0
+    },
+    "lat_at_5pct": {
+      "threshold": 0.14,
+      "action_delay": 0.6,
+      "timeout": 1.0,
+      "cutoff_rate": 0.04710144927536232,
+      "mean_latency": 0.6949999999999998,
+      "detect_rate": 0.77,
+      "n_hold": 552.0,
+      "n_eot": 400.0
+    },
+    "lat_at_10pct": {
+      "threshold": 0.05,
+      "action_delay": 0.5,
+      "timeout": 1.0,
+      "cutoff_rate": 0.09963768115942029,
+      "mean_latency": 0.5677500000000001,
+      "detect_rate": 0.8675,
+      "n_hold": 552.0,
+      "n_eot": 400.0
+    }
+  },
+  "FCR@300": 0.4945652173913043,
+  "FCR@600": 0.07427536231884058,
+  "Lat@5%": 0.6949999999999998,
+  "Lat@10%": 0.5677500000000001,
+  "Detect@5%": 0.77,
+  "auc": 0.6445108695652174,
+  "ap": 0.5955263913410549,
+  "n_hold": 552,
+  "n_eot": 400,
+  "frozen_knobs": {
+    "threshold": 0.85,
+    "action_delay": 0.4,
+    "timeout": 2.5
+  },
+  "frozen_result": {
+    "fcr": 0.05253623188405797,
+    "mean_latency": 1.69075,
+    "detect_rate": 0.4025
+  },
+  "detector": "pulse_eot_hi:no_DIGIT",
+  "set": "eot_bench_hi",
+  "condition": "clean",
+  "n_turns": 400,
+  "score_point": null,
+  "uses_text": true,
+  "wall_s": 560.6,
+  "ms_per_hop_p50": 33.96990000328515,
+  "ms_per_hop_p95": 69.43082000507272,
+  "ms_per_hop_max": 982.0888999893214,
+  "ms_per_scored_hop_p95": 69.43082000507272,
+  "note_timing": "wall clock with 4 parallel worker processes on one machine; see eval/bench_cpu.py for the single-core benchmark"
+}

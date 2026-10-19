@@ -62,7 +62,7 @@ def main() -> None:
     for v in a.variants:
         cfg = VARIANTS[v]
         names = cfg["features"]
-        trm = tr[tr.in_speech == 0]
+        trm = tr
         X, y, Xd = matrix(trm, names, frozenset()), (trm["label"] == "eot").to_numpy(int), matrix(dev, names, frozenset())
         best = None
         for lr, leaves, iters in GRID:

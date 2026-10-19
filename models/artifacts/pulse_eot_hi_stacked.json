@@ -1,0 +1,87 @@
+{
+  "variant": "stacked",
+  "features": [
+    "sil_s",
+    "speech_8s",
+    "vad_p_last",
+    "vad_p_mean_160ms",
+    "e_last_rel",
+    "f0_final_rel",
+    "f0_slope",
+    "final_voiced_ms",
+    "gap_since_voiced_ms",
+    "energy_slope",
+    "energy_final_rel",
+    "voiced_ratio_2s",
+    "rate_peaks_per_s",
+    "has_text",
+    "lex_logit",
+    "n_tokens",
+    "asr_closed",
+    "since_partial_s",
+    "tag_q",
+    "c1_HOLD",
+    "c1_VERB",
+    "c1_TAG",
+    "c1_DIGIT",
+    "c1_OTHER",
+    "c2_HOLD",
+    "c2_VERB",
+    "c2_TAG",
+    "c2_DIGIT",
+    "c2_OTHER",
+    "st_prob"
+  ],
+  "drop_classes": [],
+  "smart_turn": true,
+  "lexical": "pulse_eot_hi_stacked_lexical.npz",
+  "hyperparams": {
+    "learning_rate": 0.1,
+    "max_leaf_nodes": 15,
+    "max_iter": 150
+  },
+  "train_data": "60% of smart-turn-data-v3.2-test clips (Hindi TTS + real-human non-Hindi); lexical head on smart-turn train Hindi",
+  "n_train_hops": 15415,
+  "n_train_episodes": 1379,
+  "onnx_max_abs_diff_vs_sklearn": 1.6832362068064377e-07,
+  "dev_summary": {
+    "FCR@300": 0.1951219512195122,
+    "FCR@600": 0.046747967479674794,
+    "Lat@5%": 0.5741273100616019,
+    "Lat@10%": 0.4022587268993839,
+    "auc": 0.9762399626049648,
+    "ap": 0.9787950575634474
+  },
+  "dev_by_source": {
+    "hi_tts": {
+      "FCR@300": 0.16818181818181818,
+      "Lat@5%": 0.49919354838709673,
+      "auc": 0.979600439882698
+    },
+    "human": {
+      "FCR@300": 0.20220588235294118,
+      "Lat@5%": 0.6138075313807531,
+      "auc": 0.9726187546148166
+    }
+  },
+  "dev_frozen_knobs_lat5": {
+    "threshold": 0.85,
+    "action_delay": 0.4,
+    "timeout": 3.5,
+    "cutoff_rate": 0.04878048780487805,
+    "mean_latency": 0.5741273100616019,
+    "detect_rate": 0.9589322381930184,
+    "n_hold": 492.0,
+    "n_eot": 487.0
+  },
+  "dev_frozen_knobs_fcr300": {
+    "threshold": 0.71,
+    "action_delay": 0.2,
+    "timeout": 2.0,
+    "cutoff_rate": 0.1951219512195122,
+    "mean_latency": 0.29938398357289536,
+    "detect_rate": 0.9753593429158111,
+    "n_hold": 492.0,
+    "n_eot": 487.0
+  }
+}

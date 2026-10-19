@@ -17,7 +17,11 @@ import sys
 
 QUICK = ["silero_timer", "smart_turn_v32", "pulse_eot_hi"]
 FULL_EXTRA = ["smart_turn_v32_fp32", "hinglish_turn"]
-ABLATIONS = ["pulse_eot_hi:audio_only", "pulse_eot_hi:no_lexhead", "pulse_eot_hi:no_HOLD", "pulse_eot_hi:no_VERB", "pulse_eot_hi:no_TAG", "pulse_eot_hi:no_DIGIT"]
+# v0 (Hindi TTS only, no Smart Turn) and its ablations; v0.1 ablations
+ABLATIONS = [
+    "pulse_eot_hi:full", "pulse_eot_hi:audio_only", "pulse_eot_hi:no_lexhead", "pulse_eot_hi:no_HOLD", "pulse_eot_hi:no_VERB",
+    "pulse_eot_hi:no_TAG", "pulse_eot_hi:no_DIGIT", "pulse_eot_hi:stacked_audio_only", "pulse_eot_hi:smart_turn_only",
+]
 
 
 def sh(*args: str) -> None:
