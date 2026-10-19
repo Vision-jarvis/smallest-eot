@@ -10,7 +10,8 @@ after which the policy re-arms only once the VAD hears speech again. Events are 
 against the labelled spans:
 
 * hold cut-in:   an event inside a hold span (0.2 to 5 s, as eot-bench filters) -> FCR.
-* speech cut-in: an event outside every labelled silence span (VAD dropout mid-speech).
+* speech cut-in: an event before the true offset that is outside every labelled silence
+                 span (VAD dropout mid-speech, or a pause shorter than 100 ms).
 * latency:       first event after the true offset (EoT span start) minus that offset. The
                  recording is padded with 3 s of silence so slow timers can still fire; a turn
                  with no event by the end of the pad is charged the full pad length.
@@ -32,6 +33,8 @@ EPS = 1e-9
 def events(t: np.ndarray, p: np.ndarray, sil: np.ndarray, threshold: float, action_delay: float, timeout: float) -> list[float]:
     out, armed = [], True
     for ti, pi, si in zip(t, p, sil):
+        if si >= ti - 1e-6:  # the user has not spoken yet in this turn: nothing to end
+            continue
         if si <= EPS:
             armed = True
             continue
@@ -45,7 +48,8 @@ def score_turn(turn: Turn, ev: list[float], pad_s: float) -> dict:
     holds = [s for s in turn.spans if s.label == "hold" and 0.2 - EPS <= s.dur <= 5.0 + EPS]
     eot = [s for s in turn.spans if s.label == "eot"]
     cut = [any(s.start < e < s.end - EPS for e in ev) for s in holds]
-    in_span = [any(s.start - EPS <= e <= s.end + EPS for s in turn.spans) for e in ev]
+    last_end = eot[0].start if eot else turn.duration
+    in_span = [e >= last_end - EPS or any(s.start - EPS <= e <= s.end + EPS for s in turn.spans) for e in ev]
     lat = None
     if eot:
         s = eot[0]

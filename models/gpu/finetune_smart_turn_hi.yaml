@@ -1,0 +1,35 @@
+# PENDING (needs one 24 GB GPU, ~15 to 20 GPU-hours, <= $50 rented; and IndicVoices access).
+# Fine-tune Smart Turn v3.2 (Whisper-tiny encoder, BSD-2) as the audio branch of Pulse-EoT-hi.
+# Run: bash models/gpu/run_gpu.sh   (see STATUS.md)
+init:
+  checkpoint: pipecat-ai/smart-turn-v3   # BSD-2; the fp32 export is smart-turn-v3.2-gpu.onnx
+  freeze_encoder_epochs: 1
+data:
+  train:
+    - source: pipecat-ai/smart-turn-data-v3.2-train   # CC BY 4.0, Hindi rows (language == "hin")
+      filter: {language: hin}
+    - source: ai4bharat/IndicVoices/hindi            # CC BY 4.0, gated: accept terms on HF first
+      spans: bharat_turn/manifest.parquet            # split == "train" only (speaker- and conversation-disjoint)
+  dev:
+    - source: pipecat-ai/smart-turn-data-v3.2-test
+      filter: {language: hin}
+    - source: bharat_turn/manifest.parquet
+      filter: {split: dev}
+  never_used: [livekit/eot-bench-data hi validation, bharat_turn test split]   # honesty rule 3
+augment:
+  telephony_8k_mulaw_p: 0.5      # core.audio.mulaw_roundtrip
+  musan_noise_p: 0.4             # snr_db uniform in [5, 20]
+  speed_perturb: [0.9, 1.1]
+  trailing_silence_s: [0.0, 1.0]
+train:
+  window_s: 8
+  batch_size: 64
+  epochs: 4
+  lr_encoder: 1.0e-5
+  lr_head: 1.0e-4
+  weight_decay: 0.01
+  warmup_frac: 0.05
+  early_stopping: dev Lat@5% (eval/metrics.py on dev episodes), never a test set
+export:
+  onnx_int8: models/artifacts/smart_turn_hi_int8.onnx   # dynamic uint8 weight quantisation
+  then: add its probability as a feature in models/pulse_eot_hi.py (one call per pause) and rerun python -m models.train

@@ -29,7 +29,8 @@ from eval import asr_cache
 from eval.harness import grid_times, hop_index, replay
 from models import lexical as lexmod
 from models.episodes import EPISODES, build_and_save, load_episodes
-from models.pulse_eot_hi import ART, FEATURES, VARIANTS, FeatureState, vectorise
+from models.export_onnx import export
+from models.pulse_eot_hi import ART, VARIANTS, FeatureState, vectorise
 
 ROOT = Path(__file__).resolve().parents[1]
 PAD_S = 3.0
@@ -43,8 +44,8 @@ class FeatureRecorder:
     score_point = None
     uses_text = True
 
-    def __init__(self) -> None:
-        self.state = FeatureState(None)
+    def __init__(self, smart_turn: bool = False) -> None:
+        self.state = FeatureState(None, smart_turn=smart_turn)
         self.rows: list[dict] = []
 
     def start_turn(self, sr, agent_text):
@@ -70,8 +71,8 @@ class FeatureRecorder:
 
 
 def _featurise(args) -> list[dict]:
-    turn, partials = args
-    rec = FeatureRecorder()
+    turn, partials, smart_turn = args
+    rec = FeatureRecorder(smart_turn)
     replay(rec, turn, partials, pad_s=PAD_S, lazy=False)
     by_hop = {hop_index(r["t"]): r for r in rec.rows}
     s = turn.spans[0]
@@ -84,9 +85,9 @@ def _featurise(args) -> list[dict]:
     return out
 
 
-def featurise(name: str, use_asr: bool, workers: int) -> pd.DataFrame:
+def featurise(name: str, use_asr: bool, workers: int, smart_turn: bool = False) -> pd.DataFrame:
     FEATS_DIR.mkdir(parents=True, exist_ok=True)
-    out = FEATS_DIR / f"{name}.parquet"
+    out = FEATS_DIR / f"{name}{'_st' if smart_turn else ''}.parquet"
     if out.exists():
         return pd.read_parquet(out)
     turns = load_episodes(name)
@@ -96,7 +97,7 @@ def featurise(name: str, use_asr: bool, workers: int) -> pd.DataFrame:
         parts = asr_cache.load(name)
     rows = []
     with ProcessPoolExecutor(workers) as ex:
-        for r in ex.map(_featurise, [(t, parts.get(t.id, [])) for t in turns], chunksize=4):
+        for r in ex.map(_featurise, [(t, parts.get(t.id, []), smart_turn) for t in turns], chunksize=4):
             rows.extend(r)
     df = pd.DataFrame(rows)
     df.to_parquet(out)
@@ -147,21 +148,10 @@ def dev_predictions(df: pd.DataFrame, p: np.ndarray) -> pd.DataFrame:
     )
 
 
-def export_onnx(model, n_features: int, path: Path, X_check: np.ndarray) -> None:
-    from skl2onnx import to_onnx
-    import onnxruntime as ort
-
-    onx = to_onnx(model, X_check[:1].astype(np.float32), options={id(model): {"zipmap": False}}, target_opset=17)
-    path.write_bytes(onx.SerializeToString())
-    sess = ort.InferenceSession(str(path), providers=["CPUExecutionProvider"])
-    p_onnx = sess.run(None, {sess.get_inputs()[0].name: X_check.astype(np.float32)})[1][:, 1]
-    p_skl = model.predict_proba(X_check)[:, 1]
-    err = float(np.max(np.abs(p_onnx - p_skl)))
-    if err > 1e-4:
-        raise RuntimeError(f"ONNX parity failed: max |dp| = {err}")
+GRID = [(0.05, 15, 200), (0.05, 31, 300), (0.1, 15, 150), (0.03, 31, 500)]
 
 
-def train_variant(variant: str, tr: pd.DataFrame, dev: pd.DataFrame, tag: str = "") -> dict:
+def train_variant(variant: str, tr: pd.DataFrame, dev: pd.DataFrame, tag: str = "", grid=GRID) -> dict:
     from sklearn.ensemble import HistGradientBoostingClassifier
 
     from eval import metrics
@@ -175,7 +165,7 @@ def train_variant(variant: str, tr: pd.DataFrame, dev: pd.DataFrame, tag: str = 
     X, y = matrix(trm, names, drop), (trm["label"] == "eot").to_numpy(int)
     Xd = matrix(dev_l, names, drop)
     best = None
-    for lr, leaves, iters in [(0.05, 15, 200), (0.05, 31, 300), (0.1, 15, 150), (0.03, 31, 500)]:
+    for lr, leaves, iters in grid:
         m = HistGradientBoostingClassifier(learning_rate=lr, max_leaf_nodes=leaves, max_iter=iters, l2_regularization=1.0, random_state=0)
         m.fit(X, y)
         _, s = metrics.summarise(dev_predictions(dev_l, m.predict_proba(Xd)[:, 1]))
@@ -186,7 +176,7 @@ def train_variant(variant: str, tr: pd.DataFrame, dev: pd.DataFrame, tag: str = 
     _, model, hp, dev_summary = best
     ART.mkdir(parents=True, exist_ok=True)
     stem = f"pulse_eot_hi_{variant}{tag}"
-    export_onnx(model, len(names), ART / f"{stem}.onnx", Xd[:2000])
+    onnx_err = export(model, len(names), ART / f"{stem}.onnx", Xd[:5000])
     lex_name = f"{stem}_lexical.npz"
     head.save(ART / lex_name)
     meta = {
@@ -196,6 +186,7 @@ def train_variant(variant: str, tr: pd.DataFrame, dev: pd.DataFrame, tag: str = 
         "lexical": lex_name if "lex_logit" in names or "has_text" in names else None,
         "hyperparams": {"learning_rate": hp[0], "max_leaf_nodes": hp[1], "max_iter": hp[2]},
         "n_train_hops": int(len(X)),
+        "onnx_max_abs_diff_vs_sklearn": onnx_err,
         "n_train_episodes": int(tr["id"].nunique()),
         "dev_summary": {k: dev_summary[k] for k in ("FCR@300", "FCR@600", "Lat@5%", "Lat@10%", "auc", "ap")},
         "dev_frozen_knobs_lat5": dev_summary["operating_points"]["lat_at_5pct"],
@@ -230,8 +221,13 @@ def main() -> None:
         tr = pd.concat([tr, featurise("train_human", False, a.workers)], ignore_index=True)
     dev = featurise(names["dev"], True, a.workers)
     tag = sfx + ("_human" if a.human else "")
+    fixed = None
     for v in a.variants:
-        meta = train_variant(v, tr, dev, tag)
+        # model selection over the grid only for the main model; ablations reuse its hyper-params
+        meta = train_variant(v, tr, dev, tag, GRID if fixed is None else [fixed])
+        if v == "full":
+            h = meta["hyperparams"]
+            fixed = (h["learning_rate"], h["max_leaf_nodes"], h["max_iter"])
         print(json.dumps({"variant": v, **meta["dev_summary"]}))
 
 

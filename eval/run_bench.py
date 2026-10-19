@@ -72,6 +72,12 @@ def run(detector: str, set_name: str, condition: str, limit: int | None = None, 
     pd.DataFrame(traces).to_parquet(out / "traces.parquet")
     sw, summary = metrics.summarise(pred, det.score_point)
     sw.to_parquet(out / "sweep.parquet")
+    knobs = getattr(det, "frozen_knobs", None)
+    if knobs:
+        k = {x: knobs[x] for x in ("threshold", "action_delay", "timeout")}
+        o = metrics.apply_knobs(pred, k, det.score_point)
+        summary["frozen_knobs"] = k
+        summary["frozen_result"] = {"fcr": float(o.loc[o.label == "hold", "cut"].mean()), "mean_latency": float(o.loc[o.label == "eot", "latency"].mean()), "detect_rate": float(o.loc[o.label == "eot", "detected"].mean())}
     ms = np.concatenate([np.asarray(t["ms"]) for t in traces])
     p = np.concatenate([np.asarray(t["p"]) for t in traces])
     computed = np.isfinite(p)

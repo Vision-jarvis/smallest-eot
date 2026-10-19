@@ -1,0 +1,71 @@
+{
+  "variant": "no_HOLD",
+  "features": [
+    "sil_s",
+    "speech_8s",
+    "f0_final_rel",
+    "f0_slope",
+    "final_voiced_ms",
+    "gap_since_voiced_ms",
+    "energy_slope",
+    "energy_final_rel",
+    "voiced_ratio_2s",
+    "rate_peaks_per_s",
+    "has_text",
+    "lex_logit",
+    "n_tokens",
+    "asr_closed",
+    "since_partial_s",
+    "tag_q",
+    "c1_HOLD",
+    "c1_VERB",
+    "c1_TAG",
+    "c1_DIGIT",
+    "c1_OTHER",
+    "c2_HOLD",
+    "c2_VERB",
+    "c2_TAG",
+    "c2_DIGIT",
+    "c2_OTHER"
+  ],
+  "drop_classes": [
+    "HOLD"
+  ],
+  "lexical": "pulse_eot_hi_no_HOLD_lexical.npz",
+  "hyperparams": {
+    "learning_rate": 0.1,
+    "max_leaf_nodes": 15,
+    "max_iter": 150
+  },
+  "n_train_hops": 17621,
+  "onnx_max_abs_diff_vs_sklearn": 1.1518619194572643e-07,
+  "n_train_episodes": 1772,
+  "dev_summary": {
+    "FCR@300": 0.22321428571428573,
+    "FCR@600": 0.05178571428571429,
+    "Lat@5%": 0.6009917355371901,
+    "Lat@10%": 0.43669421487603305,
+    "auc": 0.9794569067296339,
+    "ap": 0.9821906413137566
+  },
+  "dev_frozen_knobs_lat5": {
+    "threshold": 0.9,
+    "action_delay": 0.4,
+    "timeout": 2.5,
+    "cutoff_rate": 0.048214285714285716,
+    "mean_latency": 0.6009917355371901,
+    "detect_rate": 0.943801652892562,
+    "n_hold": 560.0,
+    "n_eot": 605.0
+  },
+  "dev_frozen_knobs_fcr300": {
+    "threshold": 0.6,
+    "action_delay": 0.2,
+    "timeout": 2.5,
+    "cutoff_rate": 0.22321428571428573,
+    "mean_latency": 0.296198347107438,
+    "detect_rate": 0.9884297520661157,
+    "n_hold": 560.0,
+    "n_eot": 605.0
+  }
+}

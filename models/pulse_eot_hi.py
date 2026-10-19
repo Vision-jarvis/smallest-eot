@@ -40,21 +40,32 @@ FEATURES = (
     + [f"c2_{c}" for c in LEX_CLASSES]
 )
 AUDIO_FEATURES = ["sil_s", "speech_8s", *PROSODY]
+ST_SCORE_AT_S = 0.2  # Smart Turn is called once per pause, after 200 ms of VAD silence
 
 VARIANTS = {
     "full": {"features": FEATURES, "drop_classes": []},
     "audio_only": {"features": AUDIO_FEATURES, "drop_classes": []},
     "no_lexhead": {"features": [f for f in FEATURES if f != "lex_logit"], "drop_classes": []},
     **{f"no_{c}": {"features": FEATURES, "drop_classes": [c]} for c in ("HOLD", "VERB", "TAG", "DIGIT")},
+    # v0.1 "stacked": + frozen Smart Turn v3.2 probability, fused on clips Smart Turn never trained on
+    "stacked": {"features": [*FEATURES, "st_prob"], "drop_classes": [], "smart_turn": True},
+    "stacked_audio_only": {"features": [*AUDIO_FEATURES, "st_prob"], "drop_classes": [], "smart_turn": True},
+    "smart_turn_only": {"features": ["sil_s", "st_prob"], "drop_classes": [], "smart_turn": True},
 }
 
 
 class FeatureState:
     """Streaming state shared by training-time featurisation and inference."""
 
-    def __init__(self, lexical: LexicalHead | None, drop_classes: frozenset[str] = frozenset()) -> None:
+    def __init__(self, lexical: LexicalHead | None, drop_classes: frozenset[str] = frozenset(), smart_turn: bool = False) -> None:
         self.lexical = lexical
         self.drop = drop_classes
+        self.encoder = None
+        if smart_turn:
+            from adapters.baselines import AudioRing
+            from core.encoders import SmartTurnV32
+
+            self.encoder, self.ring = SmartTurnV32(), AudioRing()
         self.start_turn(16000)
 
     def start_turn(self, sr: int) -> None:
@@ -63,10 +74,17 @@ class FeatureState:
         self.pros = ProsodyTracker(sr=sr)
         self.partials: list[Partial] = []
         self._lex_cache: tuple[str, float] = ("", float("nan"))
+        self._st: float = float("nan")  # Smart Turn prob for the current pause
+        if self.encoder is not None:
+            self.ring.reset(sr)
 
     def push_audio(self, frame: np.ndarray) -> None:
         self.vad.push(frame)
         self.pros.push(frame)
+        if self.encoder is not None:
+            self.ring.push(frame)
+            if self.vad.in_speech:
+                self._st = float("nan")
 
     def push_partial(self, p: Partial) -> None:
         self.partials.append(p)
@@ -80,6 +98,10 @@ class FeatureState:
         probs = self.vad.probs[-250:]  # last 8 s of 32 ms windows
         f["speech_8s"] = float(sum(1 for _, p in probs if p >= 0.5) * self.vad.win / self.sr)
         f.update(self.pros.features(sil))
+        if self.encoder is not None:
+            if not np.isfinite(self._st) and sil >= ST_SCORE_AT_S and not self.vad.in_speech:
+                self._st = self.encoder.prob(self.ring.buf)
+            f["st_prob"] = self._st
         text, closed = visible_text(self.partials, t)
         toks = normalise(text)
         f["has_text"] = float(bool(toks))
@@ -123,7 +145,8 @@ class PulseEoTHi:
         self.variant = variant
         self.name = f"pulse-eot-hi-v0:{variant}"
         self.uses_text = any(n in self.names for n in ("lex_logit", "has_text"))
-        self.state = FeatureState(lexical, frozenset(meta.get("drop_classes", [])))
+        self.state = FeatureState(lexical, frozenset(meta.get("drop_classes", [])), bool(meta.get("smart_turn")))
+        self.frozen_knobs = meta.get("dev_frozen_knobs_lat5")  # chosen on dev, never on a test set
 
     @classmethod
     def load(cls, variant: str = "full", tag: str = "") -> "PulseEoTHi":
@@ -148,12 +171,4 @@ class PulseEoTHi:
         if self.state.in_speech():
             return 0.0
         x = vectorise(self.state.features(t), self.names)[None]
-        out = self.sess.run(None, {self.input: x})
-        return float(_p1(out[1]))
-
-
-def _p1(probs) -> float:
-    """skl2onnx emits probabilities either as a (1, 2) tensor or a list of {label: p} maps."""
-    if isinstance(probs, list):
-        return float(probs[0][1])
-    return float(np.asarray(probs).reshape(-1)[-1])
+        return float(self.sess.run(None, {self.input: x})[0][0, 0])

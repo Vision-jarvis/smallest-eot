@@ -1,4 +1,6 @@
-data/
+data/*
+!data/README.md
+!data/_get_st_hi.py
 .venv/
 __pycache__/
 *.pyc
@@ -6,3 +8,4 @@ third_party/
 results/cache/
 *.egg-info/
 .pytest_cache/
+logs/

@@ -1,0 +1,68 @@
+{
+  "variant": "no_lexhead",
+  "features": [
+    "sil_s",
+    "speech_8s",
+    "f0_final_rel",
+    "f0_slope",
+    "final_voiced_ms",
+    "gap_since_voiced_ms",
+    "energy_slope",
+    "energy_final_rel",
+    "voiced_ratio_2s",
+    "rate_peaks_per_s",
+    "has_text",
+    "n_tokens",
+    "asr_closed",
+    "since_partial_s",
+    "tag_q",
+    "c1_HOLD",
+    "c1_VERB",
+    "c1_TAG",
+    "c1_DIGIT",
+    "c1_OTHER",
+    "c2_HOLD",
+    "c2_VERB",
+    "c2_TAG",
+    "c2_DIGIT",
+    "c2_OTHER"
+  ],
+  "drop_classes": [],
+  "lexical": "pulse_eot_hi_no_lexhead_lexical.npz",
+  "hyperparams": {
+    "learning_rate": 0.1,
+    "max_leaf_nodes": 15,
+    "max_iter": 150
+  },
+  "n_train_hops": 17621,
+  "onnx_max_abs_diff_vs_sklearn": 1.6454729684367564e-07,
+  "n_train_episodes": 1772,
+  "dev_summary": {
+    "FCR@300": 0.2357142857142857,
+    "FCR@600": 0.05714285714285714,
+    "Lat@5%": 0.671404958677686,
+    "Lat@10%": 0.4571900826446281,
+    "auc": 0.9742296340023613,
+    "ap": 0.9756145506365643
+  },
+  "dev_frozen_knobs_lat5": {
+    "threshold": 0.9,
+    "action_delay": 0.4,
+    "timeout": 3.0,
+    "cutoff_rate": 0.05,
+    "mean_latency": 0.671404958677686,
+    "detect_rate": 0.9305785123966942,
+    "n_hold": 560.0,
+    "n_eot": 605.0
+  },
+  "dev_frozen_knobs_fcr300": {
+    "threshold": 0.61,
+    "action_delay": 0.2,
+    "timeout": 2.0,
+    "cutoff_rate": 0.2357142857142857,
+    "mean_latency": 0.2991735537190083,
+    "detect_rate": 0.9867768595041322,
+    "n_hold": 560.0,
+    "n_eot": 605.0
+  }
+}
