@@ -21,6 +21,7 @@ true acoustic offset by 100 to 300 ms, and gating on it made v0 unable to act in
 from __future__ import annotations
 
 import json
+from functools import lru_cache
 from pathlib import Path
 
 import numpy as np
@@ -55,6 +56,25 @@ VARIANTS = {
 }
 
 
+@lru_cache(maxsize=None)
+def _shared_smart_turn():
+    """One Smart Turn session per process, shared by every concurrent call (ORT run is thread-safe)."""
+    from core.encoders import SmartTurnV32
+
+    return SmartTurnV32()
+
+
+@lru_cache(maxsize=None)
+def _shared_session(path: str):
+    import onnxruntime as ort
+
+    so = ort.SessionOptions()
+    so.intra_op_num_threads = 1
+    so.inter_op_num_threads = 1
+    so.log_severity_level = 3
+    return ort.InferenceSession(path, sess_options=so, providers=["CPUExecutionProvider"])
+
+
 class FeatureState:
     """Streaming state shared by training-time featurisation and inference."""
 
@@ -64,9 +84,8 @@ class FeatureState:
         self.encoder = None
         if smart_turn:
             from adapters.baselines import AudioRing
-            from core.encoders import SmartTurnV32
 
-            self.encoder, self.ring = SmartTurnV32(), AudioRing()
+            self.encoder, self.ring = _shared_smart_turn(), AudioRing()
         self.start_turn(16000)
 
     def start_turn(self, sr: int) -> None:
@@ -141,13 +160,7 @@ class PulseEoTHi:
     score_point = None
 
     def __init__(self, variant: str, head_path: Path, lexical: LexicalHead | None, meta: dict) -> None:
-        import onnxruntime as ort
-
-        so = ort.SessionOptions()
-        so.intra_op_num_threads = 1
-        so.inter_op_num_threads = 1
-        so.log_severity_level = 3
-        self.sess = ort.InferenceSession(str(head_path), sess_options=so, providers=["CPUExecutionProvider"])
+        self.sess = _shared_session(str(head_path))
         self.input = self.sess.get_inputs()[0].name
         self.names = meta["features"]
         self.variant = variant

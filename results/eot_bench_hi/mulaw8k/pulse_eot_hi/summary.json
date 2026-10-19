@@ -1,0 +1,75 @@
+{
+  "operating_points": {
+    "fcr_at_300ms": {
+      "threshold": 0.45,
+      "action_delay": 0.2,
+      "timeout": 1.0,
+      "cutoff_rate": 0.447463768115942,
+      "mean_latency": 0.29650000000000004,
+      "detect_rate": 0.945,
+      "n_hold": 552.0,
+      "n_eot": 400.0
+    },
+    "fcr_at_600ms": {
+      "threshold": 0.64,
+      "action_delay": 0.5,
+      "timeout": 1.0,
+      "cutoff_rate": 0.057971014492753624,
+      "mean_latency": 0.5895,
+      "detect_rate": 0.885,
+      "n_hold": 552.0,
+      "n_eot": 400.0
+    },
+    "lat_at_5pct": {
+      "threshold": 0.41,
+      "action_delay": 0.6,
+      "timeout": 1.0,
+      "cutoff_rate": 0.04891304347826087,
+      "mean_latency": 0.6289999999999999,
+      "detect_rate": 0.95,
+      "n_hold": 552.0,
+      "n_eot": 400.0
+    },
+    "lat_at_10pct": {
+      "threshold": 0.29,
+      "action_delay": 0.5,
+      "timeout": 1.0,
+      "cutoff_rate": 0.09963768115942029,
+      "mean_latency": 0.523,
+      "detect_rate": 0.97,
+      "n_hold": 552.0,
+      "n_eot": 400.0
+    }
+  },
+  "FCR@300": 0.447463768115942,
+  "FCR@600": 0.057971014492753624,
+  "Lat@5%": 0.6289999999999999,
+  "Lat@10%": 0.523,
+  "Detect@5%": 0.95,
+  "auc": 0.8123482789855072,
+  "ap": 0.7228597384468491,
+  "n_hold": 552,
+  "n_eot": 400,
+  "frozen_knobs": {
+    "threshold": 0.85,
+    "action_delay": 0.4,
+    "timeout": 3.5
+  },
+  "frozen_result": {
+    "fcr": 0.08695652173913043,
+    "mean_latency": 1.157,
+    "detect_rate": 0.775
+  },
+  "detector": "pulse_eot_hi",
+  "set": "eot_bench_hi",
+  "condition": "mulaw8k",
+  "n_turns": 400,
+  "score_point": null,
+  "uses_text": true,
+  "wall_s": 101.9,
+  "ms_per_hop_p50": 2.094399998895824,
+  "ms_per_hop_p95": 37.069670006167016,
+  "ms_per_hop_max": 2128.169000003254,
+  "ms_per_scored_hop_p95": 37.069670006167016,
+  "note_timing": "wall clock with 15 parallel worker processes on one machine; see eval/bench_cpu.py for the single-core benchmark"
+}

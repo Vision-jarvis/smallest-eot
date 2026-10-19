@@ -56,10 +56,10 @@
   "n_turns": 400,
   "score_point": null,
   "uses_text": false,
-  "wall_s": 17.7,
-  "ms_per_hop_p50": 1.2898000422865152,
-  "ms_per_hop_p95": 3.996520052896808,
-  "ms_per_hop_max": 227.27740003028885,
-  "ms_per_scored_hop_p95": 3.996520052896808,
-  "note_timing": "wall clock with 14 parallel worker processes on one machine; see eval/bench_cpu.py for the single-core benchmark"
+  "wall_s": 11.1,
+  "ms_per_hop_p50": 0.6560999972862191,
+  "ms_per_hop_p95": 1.1937800016312383,
+  "ms_per_hop_max": 76.60849999956554,
+  "ms_per_scored_hop_p95": 1.1937800016312383,
+  "note_timing": "wall clock with 16 parallel worker processes on one machine; see eval/bench_cpu.py for the single-core benchmark"
 }

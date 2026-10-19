@@ -1,0 +1,14 @@
+{
+  "detector": "pulse_eot_hi",
+  "hops": 5671,
+  "ms_per_hop_mean": 13.440339534616514,
+  "ms_per_hop_p50": 2.2155000042403117,
+  "ms_per_hop_p95": 8.024049991945503,
+  "ms_per_hop_p99": 401.3138400063332,
+  "calls_per_core": 7.4402882265320125,
+  "rss_mb_process": 621.671875,
+  "rss_mb_for_calls": 112.9921875,
+  "concurrent_calls_held": 50,
+  "model_mb": 10.555083274841309,
+  "cpu": "ARMv8 (64-bit) Family 8 Model 2 Revision 201, Qualcomm Technologies Inc"
+}

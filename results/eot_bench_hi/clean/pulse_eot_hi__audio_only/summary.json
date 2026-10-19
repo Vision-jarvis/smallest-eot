@@ -11,7 +11,7 @@
       "n_eot": 400.0
     },
     "fcr_at_600ms": {
-      "threshold": 0.0,
+      "threshold": 0.01,
       "action_delay": 0.6,
       "timeout": 1.0,
       "cutoff_rate": 0.07427536231884058,
@@ -21,44 +21,44 @@
       "n_eot": 400.0
     },
     "lat_at_5pct": {
-      "threshold": 0.08,
+      "threshold": 0.24,
       "action_delay": 0.6,
       "timeout": 1.0,
       "cutoff_rate": 0.04891304347826087,
-      "mean_latency": 0.6682499999999999,
-      "detect_rate": 0.875,
+      "mean_latency": 0.6972499999999999,
+      "detect_rate": 0.805,
       "n_hold": 552.0,
       "n_eot": 400.0
     },
     "lat_at_10pct": {
-      "threshold": 0.05,
+      "threshold": 0.11,
       "action_delay": 0.5,
       "timeout": 1.0,
-      "cutoff_rate": 0.09420289855072464,
-      "mean_latency": 0.5665,
-      "detect_rate": 0.9125,
+      "cutoff_rate": 0.09963768115942029,
+      "mean_latency": 0.5642499999999999,
+      "detect_rate": 0.9025,
       "n_hold": 552.0,
       "n_eot": 400.0
     }
   },
   "FCR@300": 0.4945652173913043,
   "FCR@600": 0.07427536231884058,
-  "Lat@5%": 0.6682499999999999,
-  "Lat@10%": 0.5665,
-  "Detect@5%": 0.875,
-  "auc": 0.7473007246376813,
-  "ap": 0.7056455738970537,
+  "Lat@5%": 0.6972499999999999,
+  "Lat@10%": 0.5642499999999999,
+  "Detect@5%": 0.805,
+  "auc": 0.7646150362318841,
+  "ap": 0.7211755886954014,
   "n_hold": 552,
   "n_eot": 400,
   "frozen_knobs": {
-    "threshold": 0.93,
+    "threshold": 0.92,
     "action_delay": 0.8,
     "timeout": 2.0
   },
   "frozen_result": {
     "fcr": 0.005434782608695652,
-    "mean_latency": 1.80225,
-    "detect_rate": 0.175
+    "mean_latency": 1.8602499999999997,
+    "detect_rate": 0.1225
   },
   "detector": "pulse_eot_hi:audio_only",
   "set": "eot_bench_hi",
@@ -66,10 +66,10 @@
   "n_turns": 400,
   "score_point": null,
   "uses_text": false,
-  "wall_s": 143.7,
-  "ms_per_hop_p50": 6.0028000007150695,
-  "ms_per_hop_p95": 27.453899997635727,
-  "ms_per_hop_max": 121.9550999958301,
-  "ms_per_scored_hop_p95": 27.453899997635727,
-  "note_timing": "wall clock with 4 parallel worker processes on one machine; see eval/bench_cpu.py for the single-core benchmark"
+  "wall_s": 24.6,
+  "ms_per_hop_p50": 2.2165999907883815,
+  "ms_per_hop_p95": 16.303039993363186,
+  "ms_per_hop_max": 146.71170000656275,
+  "ms_per_scored_hop_p95": 16.303039993363186,
+  "note_timing": "wall clock with 15 parallel worker processes on one machine; see eval/bench_cpu.py for the single-core benchmark"
 }

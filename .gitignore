@@ -9,3 +9,4 @@ results/cache/
 *.egg-info/
 .pytest_cache/
 logs/
+results/**/traces.parquet

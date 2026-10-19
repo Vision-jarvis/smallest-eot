@@ -24,9 +24,12 @@ def main() -> None:
         rows.append({"system": f"silence timer {int(r['action_delay'] * 1000)} ms", **r})
     s = BASE / "pulse_eot_hi/summary.json"
     if s.exists():
-        knobs = json.loads(s.read_text())["frozen_knobs"]
-        r = evaluate(turns, pd.read_parquet(BASE / "pulse_eot_hi/traces.parquet"), knobs)
-        rows.append({"system": "Pulse-EoT-hi v0 (dev-frozen knobs)", **r})
+        summ = json.loads(s.read_text())
+        traces = pd.read_parquet(BASE / "pulse_eot_hi/traces.parquet")
+        rows.append({"system": "Pulse-EoT-hi v0.1, dev-frozen knobs", **evaluate(turns, traces, summ["frozen_knobs"])})
+        o = summ["operating_points"]["lat_at_5pct"]
+        oracle = {k: o[k] for k in ("threshold", "action_delay", "timeout")}
+        rows.append({"system": "Pulse-EoT-hi v0.1, test Lat@5% knobs (oracle, reference only)", **evaluate(turns, traces, oracle)})
     df = pd.DataFrame(rows)[["system", "threshold", "action_delay", "timeout", "fcr", "mean_latency", "p90_latency", "speech_cutins_per_turn"]]
     df.to_csv(BASE / "deployed.csv", index=False)
     print(df.to_string(index=False))

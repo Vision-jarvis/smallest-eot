@@ -1,0 +1,75 @@
+{
+  "operating_points": {
+    "fcr_at_300ms": {
+      "threshold": 0.52,
+      "action_delay": 0.2,
+      "timeout": 1.0,
+      "cutoff_rate": 0.4891304347826087,
+      "mean_latency": 0.29675000000000007,
+      "detect_rate": 0.9175,
+      "n_hold": 552.0,
+      "n_eot": 400.0
+    },
+    "fcr_at_600ms": {
+      "threshold": 0.77,
+      "action_delay": 0.5,
+      "timeout": 1.0,
+      "cutoff_rate": 0.07427536231884058,
+      "mean_latency": 0.59725,
+      "detect_rate": 0.8375,
+      "n_hold": 552.0,
+      "n_eot": 400.0
+    },
+    "lat_at_5pct": {
+      "threshold": 0.77,
+      "action_delay": 0.6,
+      "timeout": 1.0,
+      "cutoff_rate": 0.04891304347826087,
+      "mean_latency": 0.6739999999999998,
+      "detect_rate": 0.8375,
+      "n_hold": 552.0,
+      "n_eot": 400.0
+    },
+    "lat_at_10pct": {
+      "threshold": 0.34,
+      "action_delay": 0.5,
+      "timeout": 1.0,
+      "cutoff_rate": 0.09963768115942029,
+      "mean_latency": 0.5265000000000001,
+      "detect_rate": 0.96,
+      "n_hold": 552.0,
+      "n_eot": 400.0
+    }
+  },
+  "FCR@300": 0.4891304347826087,
+  "FCR@600": 0.07427536231884058,
+  "Lat@5%": 0.6739999999999998,
+  "Lat@10%": 0.5265000000000001,
+  "Detect@5%": 0.8375,
+  "auc": 0.7996059782608695,
+  "ap": 0.7316888499222831,
+  "n_hold": 552,
+  "n_eot": 400,
+  "frozen_knobs": {
+    "threshold": 0.85,
+    "action_delay": 0.4,
+    "timeout": 3.5
+  },
+  "frozen_result": {
+    "fcr": 0.1105072463768116,
+    "mean_latency": 1.08675,
+    "detect_rate": 0.7925
+  },
+  "detector": "pulse_eot_hi",
+  "set": "eot_bench_hi",
+  "condition": "snr10",
+  "n_turns": 400,
+  "score_point": null,
+  "uses_text": true,
+  "wall_s": 91.6,
+  "ms_per_hop_p50": 4.669699992518872,
+  "ms_per_hop_p95": 13.497790014662284,
+  "ms_per_hop_max": 1654.9249999952735,
+  "ms_per_scored_hop_p95": 13.497790014662284,
+  "note_timing": "wall clock with 15 parallel worker processes on one machine; see eval/bench_cpu.py for the single-core benchmark"
+}

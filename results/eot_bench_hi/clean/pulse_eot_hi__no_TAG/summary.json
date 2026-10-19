@@ -1,64 +1,64 @@
 {
   "operating_points": {
     "fcr_at_300ms": {
-      "threshold": 0.0,
+      "threshold": 0.01,
       "action_delay": 0.3,
       "timeout": 1.0,
-      "cutoff_rate": 0.4945652173913043,
+      "cutoff_rate": 0.4855072463768116,
       "mean_latency": 0.29999999999999993,
       "detect_rate": 1.0,
       "n_hold": 552.0,
       "n_eot": 400.0
     },
     "fcr_at_600ms": {
-      "threshold": 0.0,
+      "threshold": 0.01,
       "action_delay": 0.6,
       "timeout": 1.0,
-      "cutoff_rate": 0.07427536231884058,
+      "cutoff_rate": 0.07246376811594203,
       "mean_latency": 0.5999999999999999,
       "detect_rate": 1.0,
       "n_hold": 552.0,
       "n_eot": 400.0
     },
     "lat_at_5pct": {
-      "threshold": 0.14,
+      "threshold": 0.18,
       "action_delay": 0.6,
       "timeout": 1.0,
-      "cutoff_rate": 0.04891304347826087,
-      "mean_latency": 0.6957499999999999,
-      "detect_rate": 0.775,
+      "cutoff_rate": 0.04710144927536232,
+      "mean_latency": 0.6904999999999998,
+      "detect_rate": 0.785,
       "n_hold": 552.0,
       "n_eot": 400.0
     },
     "lat_at_10pct": {
-      "threshold": 0.07,
+      "threshold": 0.09,
       "action_delay": 0.5,
       "timeout": 1.0,
-      "cutoff_rate": 0.09963768115942029,
-      "mean_latency": 0.57825,
-      "detect_rate": 0.855,
+      "cutoff_rate": 0.09782608695652174,
+      "mean_latency": 0.56625,
+      "detect_rate": 0.875,
       "n_hold": 552.0,
       "n_eot": 400.0
     }
   },
-  "FCR@300": 0.4945652173913043,
-  "FCR@600": 0.07427536231884058,
-  "Lat@5%": 0.6957499999999999,
-  "Lat@10%": 0.57825,
-  "Detect@5%": 0.775,
-  "auc": 0.6452038043478261,
-  "ap": 0.596454850635316,
+  "FCR@300": 0.4855072463768116,
+  "FCR@600": 0.07246376811594203,
+  "Lat@5%": 0.6904999999999998,
+  "Lat@10%": 0.56625,
+  "Detect@5%": 0.785,
+  "auc": 0.6445153985507246,
+  "ap": 0.5917323474210467,
   "n_hold": 552,
   "n_eot": 400,
   "frozen_knobs": {
-    "threshold": 0.91,
+    "threshold": 0.86,
     "action_delay": 0.4,
     "timeout": 2.5
   },
   "frozen_result": {
-    "fcr": 0.04528985507246377,
-    "mean_latency": 1.85075,
-    "detect_rate": 0.325
+    "fcr": 0.05434782608695652,
+    "mean_latency": 1.7582499999999999,
+    "detect_rate": 0.3675
   },
   "detector": "pulse_eot_hi:no_TAG",
   "set": "eot_bench_hi",
@@ -66,10 +66,10 @@
   "n_turns": 400,
   "score_point": null,
   "uses_text": true,
-  "wall_s": 359.0,
-  "ms_per_hop_p50": 15.583599997626152,
-  "ms_per_hop_p95": 64.50033999863079,
-  "ms_per_hop_max": 502.59119999827817,
-  "ms_per_scored_hop_p95": 64.50033999863079,
-  "note_timing": "wall clock with 4 parallel worker processes on one machine; see eval/bench_cpu.py for the single-core benchmark"
+  "wall_s": 19.9,
+  "ms_per_hop_p50": 2.0702999900095165,
+  "ms_per_hop_p95": 8.294420009769954,
+  "ms_per_hop_max": 124.37630000204081,
+  "ms_per_scored_hop_p95": 8.294420009769954,
+  "note_timing": "wall clock with 15 parallel worker processes on one machine; see eval/bench_cpu.py for the single-core benchmark"
 }
