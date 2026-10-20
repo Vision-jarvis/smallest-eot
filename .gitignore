@@ -10,3 +10,4 @@ results/cache/
 .pytest_cache/
 logs/
 results/**/traces.parquet
+results/**/*_MOCK/
