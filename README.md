@@ -81,7 +81,7 @@ bash eval/run_all.sh --quick        # Windows: .\run.ps1 quick
 python -m pytest -q tests           # metric parity with eot-bench, causality, split guard, labels, ONNX parity, GPU-path parity, sidecar
 ```
 
-`--quick` runs the Silero timer, Smart Turn v3.2 int8 and Pulse-EoT-hi v0.1 on the 200 dev-test turns with 4 worker processes, then rebuilds the report. The full run is `bash eval/run_all.sh` (also dev-test only).
+`--quick` runs the Silero timer, Smart Turn v3.2 int8 and Pulse-EoT-hi v0.1 on the 200 dev-test turns with 4 worker processes, then rebuilds the report. Measured on this laptop on 2026-10-20 (ASR cache already built): 112 s, and the streaming re-run reproduced the rescored dev-test rows exactly (timer 48.4% / 741 ms, Smart Turn int8 37.1% / 602 ms, v0.1 43.5% / 611 ms; `results/eot_bench_hi_devtest/clean/`). The full run is `bash eval/run_all.sh` (also dev-test only).
 
 ## Repo map
 

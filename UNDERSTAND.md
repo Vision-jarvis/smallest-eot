@@ -27,7 +27,7 @@ The numbers quoted here come from `results/report.md`. Re-read that file before 
 - **What the detector gets:** only frames up to t, and only partials whose logged `t_arrival <= t`.
 - **ASR replay:** `core/asr.py`. Vosk small-hi is fed in 100 ms chunks. Arrival = chunk end + measured decode time. This satisfies honesty rule 2 ("open streaming ASR replayed with logged arrival times").
 - **Test:** `tests/test_core.py::test_replay_is_causal_and_rows_follow_spans` uses a spy detector that asserts it never sees the future.
-- **Contrast with eot-bench:** eot-bench itself feeds *oracle* words with a 0.5 s lag. We do not.
+- **Contrast with eot-bench:** for text models eot-bench feeds the *reference* words whose end time is at least 0.5 s before the decision time (`third_party/eot-bench/eot_harness/io.py`: `DEFAULT_TRANSCRIPT_LAG = 0.5` on line 11, applied in `build_messages` on line 41; eot-bench commit 9ee21b5). We feed a real streaming ASR instead, with its own measured arrival times.
 
 ## 4. Why the model is a hazard over silence duration
 - **Files:** `models/pulse_eot_hi.py`, `models/train.py:train_variant`.
@@ -44,10 +44,13 @@ The numbers quoted here come from `results/report.md`. Re-read that file before 
   - **Smart Turn feature:** adds the frozen Smart Turn v3.2 probability as a feature (Smart Turn was trained on large real-human data).
   - **Fusion data:** the head is fit on Smart Turn's *test* split. That split includes real-human (mostly English) clips, and Smart Turn never trained on it, so its scores are not in-sample (`models/train_stacked.py`).
   - **VAD gating removed:** v0 originally output 0 while the VAD still said "speech". The VAD lags the true offset by 100 to 300 ms, so that gating made FCR@300 impossible. v0.1 scores every hop and sees raw Silero probabilities.
-- **Honesty point:** both changes were made **after** seeing v0's eot-bench number. eot-bench was never used to fit weights or knobs, but the *design* iteration saw it once. Say this before they ask.
+- **Honesty point:** these changes were made **after** seeing v0's eot-bench number, and then v0.1, nine ablations, three channel conditions, the deployed sweep and the slice table were all scored on the same 400 turns. eot-bench was never used to fit weights or knobs, but the *design* iteration saw it. Say this before they ask.
+- **The fix (`eval/split.py`):** the 400 turns are split by a salted SHA-256 rank of the turn id into 200 dev-test turns (all iteration) and 200 sealed turns, scored once for the final frozen-knob v1 run. `run_bench` refuses the sealed half without `--final` and logs such runs in `results/SEALED_LEDGER.md`. LiveKit's committed predictions can be rescored on either half (`eval/rescore_devtest.py`), so comparability survives. Hard question "how many times did you look?": once for design on all 400, then every variant on all 400; since Oct 20 nothing on the sealed half.
+- **Zero real Hindi in training.** 2196 + 1165 Chirp3 TTS Hindi clips, plus English and Spanish humans. Pause lengths for dev episodes come from eot-bench English. That is the root cause of v0's failure and of the poor dev-to-test knob transfer, and it is why the GPU step starts from IndicVoices (section 14).
 
-## 6. What the headline numbers mean (eot-bench hi, 400 turns)
-- **Lat@5% and FCR@300:** see the report table. v0.1 is slightly better than our CPU SmartTurn run and the published SmartTurn row on Lat@5%. It is far from LiveKit v1 (454 ms, a cloud model with text and audio).
+## 6. What the headline numbers mean (eot-bench hi)
+- **v0.1 matches Smart Turn v3.2, it does not beat it.** On all 400 turns: 634 vs 639 ms Lat@5%, but FCR@300 46.4% vs 42.6% (worse). On the 200 dev-test turns a paired bootstrap over turns (`eval/rescore_devtest.py`, 1000 resamples, each system at its own Lat@5% knobs) gives v0.1 minus Smart Turn fp32: latency -12.5 ms (95% CI -30.0 to +6.5), FCR +0.40 pp (CI -1.38 to +2.12). Zero is inside both intervals. Say "Smart Turn v3.2 with a calibration layer; no detectable difference".
+- It is far from LiveKit v1 (454 ms, a cloud model with text and audio) and v1-mini (624 ms, 27.4% FCR@300).
 - **The 3-day bar is NOT met:** FCR@300 < 27.4% and Lat@5% < 624 ms.
 - **Why FCR@300 is hard:**
   - 49.5% of holds are longer than 300 ms.
@@ -70,7 +73,7 @@ The numbers quoted here come from `results/report.md`. Re-read that file before 
 - **Per hop cost:** VAD + prosody + lexical + tree head is sub-millisecond.
 - **The Smart Turn call:** about 200 ms of CPU (Whisper-tiny int8 over 8 s), made **once per pause**, after about 200 ms of raw non-speech. So p50 per hop is tiny but the max is a spike.
 - **Spike fix in production:** run the encoder on a worker thread and deliver its score one hop later, at a cost of +100 ms latency on that hop only. Or use a smaller encoder: the deveshu tinymel is 1.3 MB and ~14 ms.
-- **Interview point:** know `ms_per_hop_p95` and `ms_per_hop_p99` from `results/efficiency/`.
+- **Interview point:** know mean 13.4 ms, p95 8.0 ms and p99 401 ms per hop, and that these were measured with x86 Python **under emulation on an ARM laptop** (`cpu` field in `results/efficiency/pulse_eot_hi.json`). Native x86 will differ; re-run `python -m eval.bench_cpu --detector pulse_eot_hi` on an x86 box before quoting a budget. RSS is 622 MB for the process plus 113 MB for 50 call states, over the 300 MB budget.
 
 ## 10. The barge-in arbiter and why its numbers are a proxy
 - **Files:** `arbiter/`.
@@ -79,7 +82,7 @@ The numbers quoted here come from `results/report.md`. Re-read that file before 
   - backchannel = isolated short IPUs (0.12 to 0.8 s, ≥ 300 ms silence on both sides);
   - barge-in = onsets of IPUs > 1.2 s;
   - noise = MUSAN.
-- **What that means:** this measures *acoustic separability of short vs long speech and noise*. It does not measure the lexical "haan" vs "nahi ruko" distinction. The real test needs the IndicVoices overlap set (Bharat-Turn-8k).
+- **What that means:** all clips are single-speaker Chirp3 **TTS** Hindi plus MUSAN. The test set is 1464 "barge-ins", 134 noise and 15 backchannels, and only **2 of 15** backchannels are recognised (13 are called barge-in). With a 91% barge-in prior, "always barge-in" already has MBR 0, so the old summary "arbiter score" was mostly noise-vs-speech and is not quoted anywhere now. Reaction p50 = p90 = 300 ms by construction. It has no lexical input, so it cannot do "haan" vs "nahi ruko". A real test needs two-party Hindi audio (IndicVoices conversational with diarisation) and Pulse partials in the 300 ms window. Call it "a speech-onset vs noise classifier on TTS clips".
 
 ## 11. Bharat-Turn-8k label rules
 - **Files:** `bharat_turn/labels.py` and its tests.
@@ -98,15 +101,19 @@ The numbers quoted here come from `results/report.md`. Re-read that file before 
 - **Vosk is a stand-in for Pulse:** swapping in Pulse partials is a one-line change (`adapters/pulse_endpointing.py:partials_from_log`).
 
 ## 13. Likely hard questions
-- **"Is this better than Smallest's own default?"**
-  - The fair comparison is the deployed timer curve vs v0.1 at dev-frozen knobs on VAD timing (`results/eot_bench_hi/clean/deployed.csv`).
-  - The real Pulse `eou_timeout_ms` sweep is PENDING the API key. The adapter, real-time streamer and scorer are written and tested against a local mock.
+- **"Is this better than Smallest's own default? Why would I switch off my 600 ms timer?"**
+  - Say it out loud: **not yet, you should not switch.** On the deployed (VAD-timed) curve a 600 ms timer gives 6.9% false cut-offs at 579 ms; v0.1 at dev-frozen knobs gives 10.3% at 1.11 s (`results/eot_bench_hi/clean/deployed.csv`). The model only looks competitive at knobs picked on the test set, which is not deployable. Reason: the dev data is TTS with English pause lengths, so calibration does not transfer. The fix is a real-Hindi dev set (section 14).
+  - Smallest's Atoms already ships "Smart Turn Detection" for Hindi (off by default, 3 s wait). That is Smart Turn v3.2-class; on eot-bench hi Smart Turn v3.2 is 42.6% FCR@300. What this repo adds is the measurement of what the timer and the open models actually cost on Hindi.
+  - The real Pulse `eou_timeout_ms` sweep is PENDING the API key: `python -m adapters.pulse_endpointing --estimate-cost` gives 533.7 audio-minutes, $2.13 at $0.004/min. The adapter, real-time streamer and scorer are written and tested against a local mock.
 - **"Why GBDT and not a neural head?"**
   - Hundreds of trees on 30 features cost microseconds, train in seconds on CPU, export to a 100 KB ONNX graph (`models/export_onnx.py`), and handle the missing-feature sentinel natively.
   - The neural part is the encoder, and its fine-tune is the GPU step.
-- **"What would you do with the GPU?"** `models/gpu/finetune_smart_turn_hi.yaml`:
-  - fine-tune the Whisper-tiny encoder on Hindi Smart Turn plus Bharat-Turn train spans;
-  - add 8 kHz μ-law and MUSAN augmentation;
-  - early-stop on dev Lat@5%;
-  - export int8 and slot it in as `st_prob`.
-- **"8 kHz?"** See the `mulaw8k` rows. Train-time 8 kHz augmentation is the `--channel mulaw8k` path in `models/train.py`.
+- **"What would you do with the GPU?"** See section 14. Short version: real Hindi data first, then a short, under-$3 fine-tune.
+- **"8 kHz?"** See the `mulaw8k` rows. Train-time 8 kHz augmentation is the `--channel mulaw8k` path in `models/train.py`, and mu-law augmentation (p = 0.5) is in the GPU fine-tune.
+
+## 14. The GPU path and why it starts with data
+- **Data (`bharat_turn/indicvoices_episodes.py`):** IndicVoices Hindi extempore answers (spontaneous single-speaker speech). Silero VAD finds pauses; hold = internal silence 0.2 to 5 s, EoT = trailing silence of the last segment of a recording. Windows end 0.2 s into the pause (the eot-bench Smart Turn score point) and contain only audio before that point. Speaker-disjoint 70/10/20 split (`split_of`). Weak spot to admit: IndicVoices segments are annotator-cut, so a segment end is not always the end of the answer; the builder groups segments by recording when the file paths allow it and tags the rule used (`eot_rule`). Shortcut guard: EoT windows are never padded with synthetic silence.
+- **Model (`models/gpu/smart_turn_torch.py`):** Smart Turn v3.2 is published only as ONNX. We rebuild its torch architecture (Whisper-tiny encoder + attention pooling + MLP, from the BSD-2 upstream) and copy the ONNX initialisers in. The exporter anonymised the projection matrices (`val_17`, ...) and stored them transposed; each is identified from the graph by the named bias its MatMul feeds (k_proj has no bias and sits between q and v). Parity with the ONNX: max |dp| 1.2e-7 (`tests/test_gpu_path.py`).
+- **Trainer (`models/gpu/finetune.py`):** epoch 0 scores the untouched v3.2 on real-Hindi dev pauses, so the bar is measured with the same code. BCE with a class-ratio positive weight, AdamW with separate encoder and head learning rates, encoder frozen for epoch 1, mu-law and MUSAN augmentation, early stopping on dev Lat@5% from `eval/metrics.py`, fp32 + int8 ONNX export with a parity check. The CPU dry run includes an overfit check (16 windows, loss 0.114 to 0.005 in 30 steps, on a fake shard built from TTS clips), which proves gradients flow, not that the fine-tune will help.
+- **Cost (`models/gpu/cost_estimate.py`):** 7.2 GFLOP per forward (measured with torch's FLOP counter), about 20k training windows x 4 epochs, an assumed 15% of the L4's 121 dense bf16 TFLOPS, and measured log-mel cost: about 0.18 h and $0.26 on Modal's L4; the 2 h function timeout caps the spend at $2.86. Data loading, not the GPU, is the bottleneck.
+- **Then:** slot the new probability in as `st_prob`, refit the fusion head on IndicVoices dev, freeze knobs there, and run the sealed eot-bench half and the IndicVoices test split once. Honest expectation: getting below Smart Turn's FCR@300 is plausible; beating LiveKit v1-mini (27.4%) without a text model is uncertain.
