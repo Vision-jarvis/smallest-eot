@@ -14,8 +14,15 @@ on eot-bench `hi`. This module does all of it except holding a key:
    plus an eot-bench-mode trace (p = 1 once a final has arrived in the current pause, the
    binary-score convention eot-bench uses for Soniox/Cartesia endpoint events).
 
+Cost first (no key, no network): prints audio minutes, list-price dollars and wall time:
+    python -m adapters.pulse_endpointing --estimate-cost
 Run (once SMALLEST_API_KEY is set):
     python -m adapters.pulse_endpointing --sweep 300 400 600 800 1000 1200
+
+Scope: all 400 eot-bench hi turns, like the real-VAD timer sweep it is compared with. It is a
+baseline with no knob of ours in it, so it does not go through the sealed-half guard; nothing
+in our model is tuned on its output. Price: Pulse realtime $0.004/min, batch $0.003/min
+(docs.smallest.ai/model-cards/speech-to-text/pulse.md, Standard plan, fetched 2026-10-20).
 Smoke test against the local mock (no key, not Pulse numbers):
     python -m sidecar.mock_pulse --port 8765 &   python -m adapters.pulse_endpointing --base ws://127.0.0.1:8765 --limit 3
 """
@@ -41,6 +48,16 @@ ROOT = Path(__file__).resolve().parents[1]
 LOGS = ROOT / "data/cache/pulse"
 SWEEP_MS = (300, 400, 600, 800, 1000, 1200)
 PAD_S = 3.0
+USD_PER_MIN_REALTIME = 0.004
+
+
+def estimate_cost(turns: list[Turn], timeouts, concurrency: int = 4) -> dict:
+    """Audio streamed = every turn plus its 3 s silence pad, once per timeout value."""
+    minutes = sum(t.duration + PAD_S for t in turns) / 60 * len(timeouts)
+    return {"turns": len(turns), "timeouts": list(timeouts), "audio_minutes": round(minutes, 1),
+            "usd_at_list_price": round(minutes * USD_PER_MIN_REALTIME, 2),
+            "wall_hours_at_concurrency": round(minutes / 60 / concurrency, 2), "concurrency": concurrency,
+            "price_source": "docs.smallest.ai/model-cards/speech-to-text/pulse.md: realtime $0.004/min (2026-10-20)"}
 
 
 async def stream_turn(x: np.ndarray, sr: int, url: str, headers: dict, realtime: bool = True) -> list[dict]:
@@ -125,7 +142,12 @@ def main() -> None:
     ap.add_argument("--sweep", type=int, nargs="+", default=list(SWEEP_MS))
     ap.add_argument("--base", default=PULSE_WS)
     ap.add_argument("--limit", type=int, default=None)
+    ap.add_argument("--concurrency", type=int, default=4)
+    ap.add_argument("--estimate-cost", action="store_true", help="print the cost of the sweep and exit (no key needed)")
     a = ap.parse_args()
+    if a.estimate_cost:
+        print(json.dumps(estimate_cost(load_eot_bench_hi(a.limit), a.sweep, a.concurrency), indent=1))
+        return
     key = os.environ.get("SMALLEST_API_KEY", "")
     if a.base == PULSE_WS and not key:
         raise SystemExit("PENDING: set SMALLEST_API_KEY to run the Pulse eou_timeout_ms sweep (see STATUS.md).")
@@ -133,9 +155,12 @@ def main() -> None:
     if a.base != PULSE_WS:
         global LOGS
         LOGS = ROOT / "data/cache/pulse_mock"
-    run_sweep(turns, a.sweep, a.base, key or "mock")
+    if a.base == PULSE_WS:
+        print("cost:", json.dumps(estimate_cost(turns, a.sweep, a.concurrency)))
+    run_sweep(turns, a.sweep, a.base, key or "mock", a.concurrency)
     df = score_sweep(turns, a.sweep)
-    out = ROOT / "results/eot_bench_hi/clean" / ("pulse_endpointing" if a.base == PULSE_WS else "pulse_endpointing_MOCK")
+    # mock (protocol test) output never goes under results/
+    out = ROOT / "results/eot_bench_hi/clean/pulse_endpointing" if a.base == PULSE_WS else ROOT / "data/cache/pulse_mock/result"
     out.mkdir(parents=True, exist_ok=True)
     df.to_csv(out / "eou_sweep.csv", index=False)
     print(df.to_string(index=False))

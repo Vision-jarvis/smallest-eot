@@ -1,0 +1,24 @@
+{
+  "gpu": "L4",
+  "usd_per_hour_all_in": 1.432224,
+  "measured": {
+    "train_flops_per_sample": 21677334912.0,
+    "forward_gflops_per_sample": 7.225778304,
+    "logmel_plus_mulaw_ms_per_sample_this_cpu": 9.22482999994827
+  },
+  "assumed": {
+    "mfu": 0.15,
+    "peak_tflops": 121.0,
+    "startup_h": 0.15,
+    "n_train": 20496,
+    "n_dev": 1765,
+    "epochs": 4
+  },
+  "gpu_compute_h": 0.028175116604808818,
+  "cpu_data_h": 0.02908672178698967,
+  "bottleneck": "cpu data loading",
+  "estimated_run_h": 0.17908672178698967,
+  "estimated_usd": 0.2564923010246495,
+  "ceiling_usd_at_timeout": 2.864448,
+  "with_two_restarts_usd": 0.7694769030739484
+}

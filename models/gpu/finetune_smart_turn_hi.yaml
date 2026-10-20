@@ -1,35 +1,39 @@
-# PENDING (needs one 24 GB GPU, ~15 to 20 GPU-hours, <= $50 rented; and IndicVoices access).
-# Fine-tune Smart Turn v3.2 (Whisper-tiny encoder, BSD-2) as the audio branch of Pulse-EoT-hi.
-# Run: bash models/gpu/run_gpu.sh   (see STATUS.md)
+# Fine-tune Smart Turn v3.2 (Whisper-tiny encoder, 8.0M params, BSD-2) on real Hindi pauses.
+# Run on a GPU:  modal run models/gpu/modal_app.py          (one command; see STATUS.md)
+# CPU dry run:   python -m models.gpu.finetune --dry-run    (50 clips, proves the loop trains)
+# Paths are relative to --data-root (default: the repo root).
 init:
-  checkpoint: pipecat-ai/smart-turn-v3   # BSD-2; the fp32 export is smart-turn-v3.2-gpu.onnx
-  freeze_encoder_epochs: 1
+  onnx_fp32: data/hf/pipecat-ai__smart-turn-v3/smart-turn-v3.2-gpu.onnx   # weights copied into torch, parity < 1e-4
+  freeze_encoder_epochs: 1          # train pooling + head first, then unfreeze the encoder
 data:
   train:
-    - source: pipecat-ai/smart-turn-data-v3.2-train   # CC BY 4.0, Hindi rows (language == "hin")
-      filter: {language: hin}
-    - source: ai4bharat/IndicVoices/hindi            # CC BY 4.0, gated: accept terms on HF first
-      spans: bharat_turn/manifest.parquet            # split == "train" only (speaker- and conversation-disjoint)
-  dev:
-    - source: pipecat-ai/smart-turn-data-v3.2-test
-      filter: {language: hin}
-    - source: bharat_turn/manifest.parquet
-      filter: {split: dev}
-  never_used: [livekit/eot-bench-data hi validation, bharat_turn test split]   # honesty rule 3
+    - {name: indicvoices_hi, glob: data/indicvoices_pauses/train.parquet, repeat: 1}   # real Hindi, gated (CC BY 4.0)
+    - {name: chirp3_hi, glob: "data/smart_turn_hi/hi_*.parquet", repeat: 1}            # Smart Turn train split, Hindi TTS (replay)
+    - {name: human_en_es, glob: "data/smart_turn_hi/human_*.parquet", max_rows: 1500}  # real humans, non-Hindi (replay)
+  dev_pauses: data/indicvoices_pauses/dev.parquet     # early stopping: eot-bench-style Lat@5% at score point 0.2 s
+  dev_clips: "data/smart_turn_hi_test/hi_*.parquet"   # secondary: clip AUC on Smart Turn test-split Hindi
+  never_used: [data/indicvoices_pauses/test.parquet, eot-bench hi (both halves)]   # honesty rule 3
 augment:
-  telephony_8k_mulaw_p: 0.5      # core.audio.mulaw_roundtrip
-  musan_noise_p: 0.4             # snr_db uniform in [5, 20]
-  speed_perturb: [0.9, 1.1]
-  trailing_silence_s: [0.0, 1.0]
+  mulaw8k_p: 0.5                    # core.audio.mulaw_roundtrip (G.711 phone leg)
+  musan_p: 0.4                      # MUSAN noise (data/musan/musan/noise), SNR uniform in snr_db
+  snr_db: [5, 20]
 train:
-  window_s: 8
-  batch_size: 64
   epochs: 4
+  batch_size: 64
   lr_encoder: 1.0e-5
   lr_head: 1.0e-4
   weight_decay: 0.01
   warmup_frac: 0.05
-  early_stopping: dev Lat@5% (eval/metrics.py on dev episodes), never a test set
+  grad_clip: 1.0
+  patience: 2                       # epochs without dev Lat@5% improvement
+  num_workers: 6                    # log-mel is computed in the data loader on CPU
+  seed: 0
 export:
-  onnx_int8: models/artifacts/smart_turn_hi_int8.onnx   # dynamic uint8 weight quantisation
-  then: add its probability as a feature in models/pulse_eot_hi.py (one call per pause) and rerun python -m models.train
+  out_dir: models/artifacts/smart_turn_hi_v1
+  int8: true
+cost:
+  gpu: L4                           # Modal name; 24 GB is far more than an 8M-param model needs
+  usd_per_hour: 0.7992              # modal.com/pricing, fetched 2026-10-20 ($0.000222/s)
+  cpu_cores: 8                      # Modal CPU add-on, $0.04716/core/h
+  mem_gib: 32                       # $0.007992/GiB/h
+  timeout_h: 2.0                    # hard ceiling enforced by Modal: worst-case spend is bounded
