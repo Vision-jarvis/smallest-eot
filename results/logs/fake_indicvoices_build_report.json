@@ -1,0 +1,58 @@
+{
+  "source": "data\\_fake_indicvoices\\hindi",
+  "task_regex": "extempore",
+  "rows_kept": 40,
+  "eot_rule": "recording_end",
+  "windows": 315,
+  "counts": {
+    "test_hold_windows": 33,
+    "pauses": 131,
+    "test_hold": 33,
+    "segments": 40,
+    "test_eot_windows": 6,
+    "test_eot": 6,
+    "train_hold_windows": 213,
+    "train_hold": 65,
+    "train_eot_windows": 48,
+    "train_eot": 12,
+    "dev_hold_windows": 13,
+    "dev_hold": 13,
+    "dev_eot_windows": 2,
+    "dev_eot": 2
+  },
+  "cfg": {
+    "task_regex": "extempore",
+    "recording_regex": "^(?P<rec>.+?)[_-](?P<idx>\\d+)$",
+    "merge_gap_s": 0.1,
+    "speech_th": 0.5,
+    "min_speech_s": 0.1,
+    "max_holds_per_segment": 4,
+    "train_offsets": [
+      0.1,
+      0.2,
+      0.3,
+      0.5
+    ]
+  },
+  "speakers_per_split": {
+    "dev": 1,
+    "test": 2,
+    "train": 5
+  },
+  "tail_rms_median_by_label": {
+    "eot": 0.002016549784864572,
+    "hold": 0.002543104228342359
+  },
+  "pauses_per_split": {
+    "eot": {
+      "dev": 2,
+      "test": 6,
+      "train": 12
+    },
+    "hold": {
+      "dev": 13,
+      "test": 33,
+      "train": 65
+    }
+  }
+}

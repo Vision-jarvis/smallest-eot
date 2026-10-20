@@ -1,0 +1,18 @@
+train sources:
+  indicvoices_hi: 261 clips, 18.4% end-of-turn
+  chirp3_hi: 2196 clips, 49.2% end-of-turn
+  human_en_es: 1500 clips, 49.9% end-of-turn
+  dev_clips: 1165 clips, 51.9% end-of-turn
+{"epoch": 0, "note": "published Smart Turn v3.2, before fine-tuning", "dev_pauses": {"Lat@5%": 1.5, "FCR@300": 0.6153846153846154, "FCR@600": 0.38461538461538464, "auc": 0.3076923076923077, "ap": 0.15, "n_hold": 13, "n_eot": 2}, "dev_clips_auc": 0.9772727272727273}
+  epoch 1 step 1/6 loss 0.0233
+  epoch 1 step 2/6 loss 0.0103
+  epoch 1 step 3/6 loss 0.0127
+  epoch 1 step 4/6 loss 0.0139
+  epoch 1 step 5/6 loss 0.3412
+  epoch 1 step 6/6 loss 0.4696
+{"epoch": 1, "encoder_frozen": false, "train_loss": 0.14514213862518469, "dev_pauses": {"Lat@5%": 1.5, "FCR@300": 0.6153846153846154, "FCR@600": 0.38461538461538464, "auc": 0.3076923076923077, "ap": 0.15, "n_hold": 13, "n_eot": 2}, "dev_clips_auc": 0.9823232323232324}
+C:\Users\rrsri\desktop\peakalways\xjob\builds\smallest-eot\.venv\Lib\site-packages\transformers\models\whisper\modeling_whisper.py:610: TracerWarning: Converting a tensor to a Python boolean might cause the trace to be incorrect. We can't record the data flow of Python values, so this value will be treated as a constant in the future. This means that the trace might not generalize to other inputs!
+  if input_features.shape[-1] != expected_seq_length:
+WARNING:root:Please consider to run pre-processing before quantization. Refer to example: https://github.com/microsoft/onnxruntime-inference-examples/blob/main/quantization/image_classification/cpu/ReadMe.md 
+  overfit check on 16 clips: loss 0.1141 -> 0.0052 (ok)
+{"result": "best dev score (1.5, -0.3076923076923077) exported", "steps": 6, "train_seconds": 9.693803787231445, "samples_per_second": 4.951616625789867, "first_losses": [0.023276569321751595, 0.010278581641614437, 0.012711218558251858, 0.013861637562513351, 0.341163694858551], "last_losses": [0.010278581641614437, 0.012711218558251858, 0.013861637562513351, 0.341163694858551, 0.4695611298084259]}

@@ -8,6 +8,6 @@ third_party/
 results/cache/
 *.egg-info/
 .pytest_cache/
-logs/
+/logs/
 results/**/traces.parquet
 results/**/*_MOCK/

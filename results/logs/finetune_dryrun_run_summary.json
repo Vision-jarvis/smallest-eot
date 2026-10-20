@@ -1,0 +1,78 @@
+{
+  "dry_run": true,
+  "device": "cpu",
+  "gpu_name": null,
+  "n_train": 50,
+  "train_sources": {
+    "chirp3_hi": 29,
+    "human_en_es": 19,
+    "indicvoices_hi": 2
+  },
+  "n_dev_pauses": 15,
+  "n_dev_clips": 40,
+  "parity_before_training": 1.1920928955078125e-07,
+  "history": [
+    {
+      "epoch": 0,
+      "note": "published Smart Turn v3.2, before fine-tuning",
+      "dev_pauses": {
+        "Lat@5%": 1.5,
+        "FCR@300": 0.6153846153846154,
+        "FCR@600": 0.38461538461538464,
+        "auc": 0.3076923076923077,
+        "ap": 0.15,
+        "n_hold": 13,
+        "n_eot": 2
+      },
+      "dev_clips_auc": 0.9772727272727273
+    },
+    {
+      "epoch": 1,
+      "encoder_frozen": false,
+      "train_loss": 0.14514213862518469,
+      "dev_pauses": {
+        "Lat@5%": 1.5,
+        "FCR@300": 0.6153846153846154,
+        "FCR@600": 0.38461538461538464,
+        "auc": 0.3076923076923077,
+        "ap": 0.15,
+        "n_hold": 13,
+        "n_eot": 2
+      },
+      "dev_clips_auc": 0.9823232323232324
+    }
+  ],
+  "steps": 6,
+  "train_seconds": 9.693803787231445,
+  "samples_per_second": 4.951616625789867,
+  "first_losses": [
+    0.023276569321751595,
+    0.010278581641614437,
+    0.012711218558251858,
+    0.013861637562513351,
+    0.341163694858551
+  ],
+  "last_losses": [
+    0.010278581641614437,
+    0.012711218558251858,
+    0.013861637562513351,
+    0.341163694858551,
+    0.4695611298084259
+  ],
+  "overfit_check": {
+    "n_clips": 16,
+    "steps": 30,
+    "loss_first": 0.11410968005657196,
+    "loss_last": 0.00524512492120266,
+    "passed": true
+  },
+  "exports": {
+    "fp32": "C:\\Users\\rrsri\\Desktop\\PeakAlways\\xjob\\builds\\smallest-eot\\data\\_dryrun_finetune\\smart_turn_hi_v1.onnx",
+    "int8": "C:\\Users\\rrsri\\Desktop\\PeakAlways\\xjob\\builds\\smallest-eot\\data\\_dryrun_finetune\\smart_turn_hi_v1_int8.onnx"
+  },
+  "parity_torch_vs_onnx_fp32": 5.960464477539063e-08,
+  "max_dp_int8_vs_torch": 0.00012415647506713867,
+  "result": "best dev score (1.5, -0.3076923076923077) exported",
+  "wall_hours": 0.023644154402944775,
+  "cost_usd_if_on_L4": 0.03386372539560318
+}
