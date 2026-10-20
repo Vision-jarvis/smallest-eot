@@ -26,7 +26,8 @@ Everything under `data/` except this file and `_get_st_hi.py` is git-ignored. Li
 
 1. **IndicVoices (`ai4bharat/IndicVoices`, CC BY 4.0, gated).** Log in to huggingface.co, open the dataset page, and accept the terms (share contact info). Then run:
    `huggingface-cli login` and `huggingface-cli download ai4bharat/IndicVoices --repo-type dataset --include "hindi/*" --local-dir data/indicvoices`.
-   After that, `python -m bharat_turn.build_dataset --indicvoices-dir data/indicvoices/hindi`.
+   The full Hindi config is about 36 GB (82 train shards + 1 valid shard); the pause builder needs only a few shards, e.g. `--include "hindi/valid-*" "hindi/train-0000*"`.
+   Then `python -m bharat_turn.indicvoices_episodes --src data/indicvoices/hindi --inspect` (check the task names and audio paths once) and `python -m bharat_turn.indicvoices_episodes --src data/indicvoices/hindi --max-pauses 6000`. The two-party Bharat-Turn-8k set (`bharat_turn/build_dataset.py`) additionally needs diarisation and is not on the Nov 4 path.
 2. **pyannote.audio diarisation (alternative to Pulse batch):** accept the terms of `pyannote/speaker-diarization-3.1` on HF and set `HF_TOKEN`.
 3. **Smallest Pulse API:** set `SMALLEST_API_KEY` (from the Smallest console). This unlocks `adapters/pulse_endpointing.py` and live `sidecar/eot_sidecar.py`.
 4. **Gram Vaani (OpenSLR 118):** academic use only. Commercial use needs Gram Vaani's permission. It is not downloaded. Flag this to Smallest before using it for a shipped model.
