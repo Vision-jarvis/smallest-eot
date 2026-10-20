@@ -15,6 +15,7 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = ["pytest>=8", "transformers>=4.40"]
+gpu = ["torch>=2.4", "transformers>=4.40", "pyyaml>=6", "modal>=1.0"]
 
 [tool.setuptools]
 packages = ["core", "eval", "adapters", "models", "arbiter", "bharat_turn", "sidecar", "demo"]

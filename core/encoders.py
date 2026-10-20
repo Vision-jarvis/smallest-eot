@@ -25,16 +25,35 @@ ROOT = Path(__file__).resolve().parents[1]
 SMART_TURN_PATH = ROOT / "data/hf/pipecat-ai__smart-turn-v3/smart-turn-v3.2-cpu.onnx"
 SMART_TURN_FP32_PATH = ROOT / "data/hf/pipecat-ai__smart-turn-v3/smart-turn-v3.2-gpu.onnx"  # fp32 graph eot-bench used
 HINGLISH_PATH = ROOT / "data/hf/deveshu__hinglish-turn-detector/model_int8.onnx"
-MEL_PATH = ROOT / "data/hf/deveshu__hinglish-turn-detector/mel_filters.npz"
 SR = 16000
 N_SAMPLES = 8 * SR
 N_FFT, HOP = 400, 160
 
 
+def _hz_to_mel(f: np.ndarray) -> np.ndarray:
+    """Slaney mel scale: linear below 1 kHz, logarithmic above."""
+    f = np.asarray(f, dtype=np.float64)
+    lin = 3.0 * f / 200.0
+    return np.where(f >= 1000.0, 15.0 + np.log(np.maximum(f, 1e-10) / 1000.0) * 27.0 / np.log(6.4), lin)
+
+
+def _mel_to_hz(m: np.ndarray) -> np.ndarray:
+    m = np.asarray(m, dtype=np.float64)
+    return np.where(m >= 15.0, 1000.0 * np.exp(np.log(6.4) / 27.0 * (m - 15.0)), 200.0 * m / 3.0)
+
+
 @lru_cache(maxsize=1)
-def mel_filters() -> np.ndarray:
-    """(80, 201) Slaney mel filterbank, the same matrix Whisper uses."""
-    return np.load(MEL_PATH)["filters"].T.astype(np.float32)
+def mel_filters(n_mels: int = 80, sr: int = SR) -> np.ndarray:
+    """(80, 201) Slaney-normalised mel filterbank, the matrix Whisper uses.
+
+    Computed here (no dependency on another model's files); tests/test_encoders.py checks it
+    against transformers.audio_utils.mel_filter_bank."""
+    fft_f = np.linspace(0.0, sr / 2, N_FFT // 2 + 1)
+    pts = _mel_to_hz(np.linspace(_hz_to_mel(0.0), _hz_to_mel(sr / 2), n_mels + 2))
+    lo, c, hi = pts[:-2, None], pts[1:-1, None], pts[2:, None]
+    fb = np.maximum(0.0, np.minimum((fft_f - lo) / (c - lo), (hi - fft_f) / (hi - c)))
+    fb *= (2.0 / (pts[2:] - pts[:-2]))[:, None]
+    return fb.astype(np.float32)
 
 
 @lru_cache(maxsize=1)

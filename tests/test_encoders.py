@@ -1,12 +1,19 @@
 import numpy as np
 import pytest
 
-from core.encoders import MEL_PATH, log_mel, right_align
+from core.encoders import log_mel, mel_filters, right_align
 
 transformers = pytest.importorskip("transformers")
 
 
-@pytest.mark.skipif(not MEL_PATH.exists(), reason="download models first (data/README.md)")
+def test_mel_filters_match_transformers():
+    from transformers.audio_utils import mel_filter_bank
+
+    ref = mel_filter_bank(num_frequency_bins=201, num_mel_filters=80, min_frequency=0.0, max_frequency=8000.0,
+                          sampling_rate=16000, norm="slaney", mel_scale="slaney")
+    assert np.abs(ref.T - mel_filters()).max() < 1e-6
+
+
 @pytest.mark.parametrize("normalise", [True, False])
 def test_log_mel_matches_whisper_feature_extractor(normalise):
     x = (np.random.default_rng(0).standard_normal(16000 * 3) * 0.1).astype(np.float32)
