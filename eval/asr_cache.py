@@ -7,7 +7,6 @@ different (but still causal) log. The detector never sees partials before `t_arr
 
 from __future__ import annotations
 
-import os
 from concurrent.futures import ProcessPoolExecutor
 from pathlib import Path
 
@@ -34,7 +33,8 @@ def build(turns: list[Turn], name: str, pad_s: float, workers: int | None = None
     out = CACHE / f"asr_{name}.parquet"
     if out.exists():
         return out
-    workers = workers or max(1, (os.cpu_count() or 2) - 2)
+    # shared machine: at most 4 processes. Parallel decoding inflates arrival times (critique M8).
+    workers = workers or 4
     rows: list[dict] = []
     with ProcessPoolExecutor(workers) as ex:
         for r in ex.map(_work, [(t.id, t.audio, t.sr, pad_s) for t in turns], chunksize=4):

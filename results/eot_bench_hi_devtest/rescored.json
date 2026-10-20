@@ -1,0 +1,318 @@
+{
+  "half": "devtest",
+  "n_turns": 200,
+  "rows": [
+    {
+      "system": "LiveKit Turn Detector v1 (published)",
+      "FCR@300": 0.0846774193548387,
+      "FCR@600": 0.012096774193548387,
+      "Lat@5%": 0.3839999999999999,
+      "Lat@10%": 0.28400000000000003,
+      "n_hold": 248,
+      "n_eot": 200,
+      "knobs_lat5": {
+        "threshold": 0.72,
+        "action_delay": 0.3,
+        "timeout": 1.0,
+        "cutoff_rate": 0.04838709677419355,
+        "mean_latency": 0.3839999999999999,
+        "detect_rate": 0.88,
+        "n_hold": 248.0,
+        "n_eot": 200.0
+      },
+      "kind": "published"
+    },
+    {
+      "system": "LiveKit v1-mini (published)",
+      "FCR@300": 0.24596774193548387,
+      "FCR@600": 0.04838709677419355,
+      "Lat@5%": 0.5500000000000002,
+      "Lat@10%": 0.4690000000000001,
+      "n_hold": 248,
+      "n_eot": 200,
+      "knobs_lat5": {
+        "threshold": 0.38,
+        "action_delay": 0.4,
+        "timeout": 1.0,
+        "cutoff_rate": 0.04838709677419355,
+        "mean_latency": 0.5500000000000002,
+        "detect_rate": 0.75,
+        "n_hold": 248.0,
+        "n_eot": 200.0
+      },
+      "kind": "published"
+    },
+    {
+      "system": "Deepgram Flux (published)",
+      "FCR@300": 0.18548387096774194,
+      "FCR@600": 0.036290322580645164,
+      "Lat@5%": 0.552338125,
+      "Lat@10%": 0.4310000000000001,
+      "n_hold": 248,
+      "n_eot": 200,
+      "knobs_lat5": {
+        "threshold": 0.61,
+        "action_delay": 0.2,
+        "timeout": 1.0,
+        "cutoff_rate": 0.04838709677419355,
+        "mean_latency": 0.552338125,
+        "detect_rate": 0.875,
+        "n_hold": 248.0,
+        "n_eot": 200.0
+      },
+      "kind": "published"
+    },
+    {
+      "system": "SmartTurn v3.2 (published, GPU fp32)",
+      "FCR@300": 0.3709677419354839,
+      "FCR@600": 0.05241935483870968,
+      "Lat@5%": 0.6239999999999999,
+      "Lat@10%": 0.4810000000000001,
+      "n_hold": 248,
+      "n_eot": 200,
+      "knobs_lat5": {
+        "threshold": 0.02,
+        "action_delay": 0.6,
+        "timeout": 1.0,
+        "cutoff_rate": 0.04435483870967742,
+        "mean_latency": 0.6239999999999999,
+        "detect_rate": 0.94,
+        "n_hold": 248.0,
+        "n_eot": 200.0
+      },
+      "kind": "published"
+    },
+    {
+      "system": "VAP (published)",
+      "FCR@300": 0.5080645161290323,
+      "FCR@600": 0.05241935483870968,
+      "Lat@5%": 0.6012975,
+      "Lat@10%": 0.5204218749999999,
+      "n_hold": 248,
+      "n_eot": 200,
+      "knobs_lat5": {
+        "threshold": 0.06,
+        "action_delay": 0.5,
+        "timeout": 1.0,
+        "cutoff_rate": 0.04838709677419355,
+        "mean_latency": 0.6012975,
+        "detect_rate": 0.87,
+        "n_hold": 248.0,
+        "n_eot": 200.0
+      },
+      "kind": "published"
+    },
+    {
+      "system": "Soniox stt-rt-preview (published, cloud)",
+      "FCR@300": null,
+      "FCR@600": 0.028225806451612902,
+      "Lat@5%": 0.5543490649999999,
+      "Lat@10%": 0.5543490649999999,
+      "n_hold": 248,
+      "n_eot": 200,
+      "knobs_lat5": {
+        "threshold": 0.99,
+        "action_delay": 0.2,
+        "timeout": 1.0,
+        "cutoff_rate": 0.03225806451612903,
+        "mean_latency": 0.5543490649999999,
+        "detect_rate": 0.715,
+        "n_hold": 248.0,
+        "n_eot": 200.0
+      },
+      "kind": "published"
+    },
+    {
+      "system": "ultraVAD (published, open weights, 0.7B: out of the 50 MB / 10 ms budget)",
+      "FCR@300": 0.39919354838709675,
+      "FCR@600": 0.04838709677419355,
+      "Lat@5%": 0.5999999999999999,
+      "Lat@10%": 0.4960000000000001,
+      "n_hold": 248,
+      "n_eot": 200,
+      "knobs_lat5": {
+        "threshold": 0.02,
+        "action_delay": 0.6,
+        "timeout": 1.0,
+        "cutoff_rate": 0.04838709677419355,
+        "mean_latency": 0.5999999999999999,
+        "detect_rate": 1.0,
+        "n_hold": 248.0,
+        "n_eot": 200.0
+      },
+      "kind": "published"
+    },
+    {
+      "system": "Gradium (published, cloud)",
+      "FCR@300": 0.4879032258064516,
+      "FCR@600": 0.056451612903225805,
+      "Lat@5%": 0.60381,
+      "Lat@10%": 0.54097406,
+      "n_hold": 248,
+      "n_eot": 200,
+      "knobs_lat5": {
+        "threshold": 0.17,
+        "action_delay": 0.5,
+        "timeout": 1.0,
+        "cutoff_rate": 0.04838709677419355,
+        "mean_latency": 0.60381,
+        "detect_rate": 0.915,
+        "n_hold": 248.0,
+        "n_eot": 200.0
+      },
+      "kind": "published"
+    },
+    {
+      "system": "Pulse-EoT-hi v0.1 stacked (ours)",
+      "FCR@300": 0.43548387096774194,
+      "FCR@600": 0.05241935483870968,
+      "Lat@5%": 0.6114999999999999,
+      "Lat@10%": 0.5,
+      "n_hold": 248,
+      "n_eot": 200,
+      "knobs_lat5": {
+        "threshold": 0.18,
+        "action_delay": 0.6,
+        "timeout": 1.5,
+        "cutoff_rate": 0.04838709677419355,
+        "mean_latency": 0.6114999999999999,
+        "detect_rate": 0.99,
+        "n_hold": 248.0,
+        "n_eot": 200.0
+      },
+      "kind": "ours",
+      "frozen": {
+        "knobs": {
+          "threshold": 0.85,
+          "action_delay": 0.4,
+          "timeout": 3.5
+        },
+        "fcr": 0.056451612903225805,
+        "mean_latency": 1.1565
+      }
+    },
+    {
+      "system": "Pulse-EoT-hi v0, Hindi TTS only (ours)",
+      "FCR@300": 0.4959677419354839,
+      "FCR@600": 0.06048387096774194,
+      "Lat@5%": 0.6474999999999999,
+      "Lat@10%": 0.5105,
+      "n_hold": 248,
+      "n_eot": 200,
+      "knobs_lat5": {
+        "threshold": 0.08,
+        "action_delay": 0.6,
+        "timeout": 1.0,
+        "cutoff_rate": 0.04838709677419355,
+        "mean_latency": 0.6474999999999999,
+        "detect_rate": 0.885,
+        "n_hold": 248.0,
+        "n_eot": 200.0
+      },
+      "kind": "ours",
+      "frozen": {
+        "knobs": {
+          "threshold": 0.82,
+          "action_delay": 0.4,
+          "timeout": 3.5
+        },
+        "fcr": 0.03225806451612903,
+        "mean_latency": 2.3875
+      }
+    },
+    {
+      "system": "SmartTurn v3.2 fp32 on CPU (ours)",
+      "FCR@300": 0.3709677419354839,
+      "FCR@600": 0.05241935483870968,
+      "Lat@5%": 0.6239999999999999,
+      "Lat@10%": 0.4810000000000001,
+      "n_hold": 248,
+      "n_eot": 200,
+      "knobs_lat5": {
+        "threshold": 0.02,
+        "action_delay": 0.6,
+        "timeout": 1.0,
+        "cutoff_rate": 0.04435483870967742,
+        "mean_latency": 0.6239999999999999,
+        "detect_rate": 0.94,
+        "n_hold": 248.0,
+        "n_eot": 200.0
+      },
+      "kind": "ours"
+    },
+    {
+      "system": "SmartTurn v3.2 int8 CPU (ours)",
+      "FCR@300": 0.3709677419354839,
+      "FCR@600": 0.05241935483870968,
+      "Lat@5%": 0.6025,
+      "Lat@10%": 0.5075,
+      "n_hold": 248,
+      "n_eot": 200,
+      "knobs_lat5": {
+        "threshold": 0.77,
+        "action_delay": 0.5,
+        "timeout": 1.0,
+        "cutoff_rate": 0.04838709677419355,
+        "mean_latency": 0.6025,
+        "detect_rate": 0.795,
+        "n_hold": 248.0,
+        "n_eot": 200.0
+      },
+      "kind": "ours"
+    },
+    {
+      "system": "deveshu/hinglish-turn-detector (ours)",
+      "FCR@300": 0.5080645161290323,
+      "FCR@600": 0.06451612903225806,
+      "Lat@5%": 0.6125,
+      "Lat@10%": 0.535,
+      "n_hold": 248,
+      "n_eot": 200,
+      "knobs_lat5": {
+        "threshold": 0.03,
+        "action_delay": 0.5,
+        "timeout": 1.0,
+        "cutoff_rate": 0.04838709677419355,
+        "mean_latency": 0.6125,
+        "detect_rate": 0.775,
+        "n_hold": 248.0,
+        "n_eot": 200.0
+      },
+      "kind": "ours"
+    },
+    {
+      "system": "Silero VAD timer (ours, real VAD)",
+      "FCR@300": 0.4838709677419355,
+      "FCR@600": 0.06451612903225806,
+      "Lat@5%": 0.741,
+      "Lat@10%": 0.5634999999999999,
+      "n_hold": 248,
+      "n_eot": 200,
+      "knobs_lat5": {
+        "threshold": 0.35,
+        "action_delay": 0.2,
+        "timeout": 1.0,
+        "cutoff_rate": 0.04838709677419355,
+        "mean_latency": 0.741,
+        "detect_rate": 0.835,
+        "n_hold": 248.0,
+        "n_eot": 200.0
+      },
+      "kind": "ours"
+    }
+  ],
+  "bootstrap_v01_minus_smartturn_fp32": {
+    "n_turns": 200,
+    "lat_diff_s": -0.012499999999999956,
+    "lat_ci_s": [
+      -0.030000000000000027,
+      0.00651249999999994
+    ],
+    "fcr_diff": 0.0040322580645161255,
+    "fcr_ci": [
+      -0.01376305331247622,
+      0.021188694554633968
+    ],
+    "resamples": 1000
+  }
+}

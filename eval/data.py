@@ -68,9 +68,17 @@ def last_agent_text(messages) -> str | None:
     return None
 
 
-def load_eot_bench_hi(limit: int | None = None, sr: int = 16000) -> list[Turn]:
-    """The 400-turn Hindi validation split of livekit/eot-bench-data (TEST ONLY, never train)."""
+def load_eot_bench_hi(limit: int | None = None, sr: int = 16000, half: str = "all") -> list[Turn]:
+    """The 400-turn Hindi validation split of livekit/eot-bench-data (TEST ONLY, never train).
+
+    half: "devtest" (200 turns to iterate on), "sealed" (200 turns for the one final run) or
+    "all". See eval/split.py; callers that score a model must go through split.guard.
+    """
     df = pd.read_parquet(EOT_BENCH_HI)
+    if half != "all":
+        from eval.split import ids_of
+
+        df = df[df["id"].astype(str).isin(ids_of(half))]
     if limit:
         df = df.iloc[:limit]
     turns = []

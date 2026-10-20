@@ -18,7 +18,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from eval import asr_cache, conditions, metrics
+from eval import asr_cache, conditions, metrics, split
 from eval.data import Turn, load_eot_bench_hi
 from eval.harness import bench_rows, replay, to_frame
 from eval.registry import make
@@ -42,9 +42,9 @@ def _run_one(args) -> tuple[list[dict], dict]:
     return rows, trace
 
 
-def load_set(name: str, limit: int | None) -> list[Turn]:
+def load_set(name: str, limit: int | None, half: str = "devtest") -> list[Turn]:
     if name == "eot_bench_hi":
-        return load_eot_bench_hi(limit)
+        return load_eot_bench_hi(limit, half=half)
     if name.startswith("dev_"):
         from models.episodes import load_episodes
 
@@ -52,15 +52,22 @@ def load_set(name: str, limit: int | None) -> list[Turn]:
     raise ValueError(name)
 
 
-def run(detector: str, set_name: str, condition: str, limit: int | None = None, workers: int | None = None) -> dict:
-    turns = [conditions.apply(t, condition) for t in load_set(set_name, limit)]
+def run(detector: str, set_name: str, condition: str, limit: int | None = None, workers: int | None = None,
+        half: str = "devtest", final: bool = False) -> dict:
+    if set_name == "eot_bench_hi":
+        split.guard(half, final, f"run_bench {detector} {condition}")
+    turns = [conditions.apply(t, condition) for t in load_set(set_name, limit, half)]
+    # reuse the full-set ASR cache when it exists (per-turn entries do not depend on the half)
     cache_name = f"{set_name}_{condition}" + (f"_n{limit}" if limit else "")
+    if set_name == "eot_bench_hi" and half != "all" and not (asr_cache.CACHE / f"asr_{cache_name}.parquet").exists():
+        cache_name += f"_{half}"
     asr_cache.build(turns, cache_name, PAD_S)
     parts = asr_cache.load(cache_name)
     det = make(detector)
-    out = ROOT / "results" / set_name / condition / detector.replace(":", "__")
+    tag = set_name if set_name != "eot_bench_hi" or half == "all" else f"{set_name}_{half}"
+    out = ROOT / "results" / tag / condition / detector.replace(":", "__")
     out.mkdir(parents=True, exist_ok=True)
-    workers = workers or max(1, (os.cpu_count() or 2) - 2)
+    workers = workers or 4  # shared machine: cap at 4 worker processes
     t0 = time.time()
     rows, traces = [], []
     with ProcessPoolExecutor(workers, initializer=_init, initargs=(detector,)) as ex:
@@ -87,6 +94,7 @@ def run(detector: str, set_name: str, condition: str, limit: int | None = None, 
             "set": set_name,
             "condition": condition,
             "n_turns": len(turns),
+            "half": half if set_name == "eot_bench_hi" else None,
             "score_point": det.score_point,
             "uses_text": det.uses_text,
             "wall_s": round(time.time() - t0, 1),
@@ -107,9 +115,11 @@ def main() -> None:
     ap.add_argument("--set", default="eot_bench_hi")
     ap.add_argument("--condition", default="clean", choices=conditions.CONDITIONS)
     ap.add_argument("--limit", type=int, default=None)
-    ap.add_argument("--workers", type=int, default=None)
+    ap.add_argument("--workers", type=int, default=4)
+    ap.add_argument("--half", default="devtest", choices=split.HALVES, help="eot-bench hi half (eval/split.py)")
+    ap.add_argument("--final", action="store_true", help="required to score the sealed half; logged")
     a = ap.parse_args()
-    s = run(a.detector, a.set, a.condition, a.limit, a.workers)
+    s = run(a.detector, a.set, a.condition, a.limit, a.workers, a.half, a.final)
     print(json.dumps({k: s[k] for k in ("detector", "condition", "FCR@300", "FCR@600", "Lat@5%", "Lat@10%", "Detect@5%", "auc", "ap", "wall_s")}, indent=1))
 
 

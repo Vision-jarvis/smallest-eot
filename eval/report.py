@@ -31,6 +31,9 @@ PUBLISHED = {  # run dir -> display name (numbers are recomputed from LiveKit's 
     "deepgram_flux_streaming_adapter__flux_general_multi": "Deepgram Flux (published)",
     "smart_turn_audio_adapter__cb4f57229a": "SmartTurn v3.2 (published, GPU fp32)",
     "vap_adapter__d8cef83e57": "VAP (published)",
+    "soniox_streaming_adapter__stt_rt_preview": "Soniox stt-rt-preview (published, cloud)",
+    "ultra_vad_adapter__920c72c9d9": "ultraVAD (published, open weights, 0.7B: out of the 50 MB / 10 ms budget)",
+    "gradium_streaming_adapter__default": "Gradium (published, cloud)",
 }
 NAMES = {
     "silero_timer": "Silero VAD timer (ours, real VAD)",

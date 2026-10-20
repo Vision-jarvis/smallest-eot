@@ -1,10 +1,13 @@
 """One entry point for the whole evaluation (Windows-friendly; eval/run_all.sh wraps it).
 
-    python -m eval.run_all --quick     # 5-minute check: model + 3 baselines on the 400 Hindi turns
+    python -m eval.run_all --quick     # 5-minute check: model + 2 baselines on the 200 dev-test Hindi turns
     python -m eval.run_all             # + SmartTurn fp32, channel conditions, ablations, arbiter, efficiency
 
+Everything here runs on the dev-test half of eot-bench hi (eval/split.py). The sealed half is
+scored only by an explicit `python -m eval.run_bench --half sealed --final ...`.
+
 --quick runs: Silero timer, SmartTurn v3.2 int8 (one Whisper call per pause), the Vosk ASR
-replay (cached after the first run) and Pulse-EoT-hi v0; then prints the table next to
+replay (cached after the first run) and Pulse-EoT-hi v0.1; then prints the table next to
 LiveKit's published Hindi rows. The deveshu baseline is excluded from --quick because it
 costs about 30 CPU-minutes (Whisper-tiny int8 with no batching).
 """
