@@ -14,7 +14,7 @@ endpoint_bool, language, dataset) plus the span keys our eot-bench metric code n
 fine-tune and scores dev Lat@5% / FCR@300 with eval/metrics.py.
 
 How a pause is found and labelled (no ASR, no API, no oracle words):
-* Rows are kept if `task_name` matches --task-regex (default "extempore"): one speaker
+* Rows are kept if `task_name` or `scenario` matches --task-regex (default "extempore"): one speaker
   answering a prompt in spontaneous Hindi, the closest public stand-in for a caller's turn.
 * Silero VAD (core/vad.py) on the 16 kHz waveform gives speech runs; runs closer than
   --merge-gap-s are merged (that removes stop-closure gaps, not pauses).
@@ -197,7 +197,10 @@ def load_rows(src: Path, cfg: Cfg, max_rows: int | None) -> pd.DataFrame:
     parts, n = [], 0
     for f in files:
         df = pd.read_parquet(f)
-        df = df[df["task_name"].astype(str).str.contains(cfg.task_regex, case=False, regex=True)]
+        hit = df["task_name"].astype(str).str.contains(cfg.task_regex, case=False, regex=True)
+        if "scenario" in df:  # IndicVoices puts "Extempore" in `scenario`; task_name holds the topic (KYP-*, DOI-*)
+            hit |= df["scenario"].astype(str).str.contains(cfg.task_regex, case=False, regex=True)
+        df = df[hit]
         df = df.assign(_path=[_path_of(a) for a in df["audio_filepath"]], _seg_id=[f"{f.stem}:{i}" for i in df.index])
         parts.append(df)
         n += len(df)
