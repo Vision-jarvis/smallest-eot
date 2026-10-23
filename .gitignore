@@ -11,3 +11,4 @@ results/cache/
 /logs/
 results/**/traces.parquet
 results/**/*_MOCK/
+/runs/
