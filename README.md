@@ -39,7 +39,7 @@ These rows use eot-bench's definition (best knob triple on the test sweep), whic
 | Pulse-EoT-hi v0 (Hindi TTS-only training) | 48.9% | 7.2% | 696 ms | 568 ms |
 | Silero VAD silence timer, run by us (real VAD) | 46.6% | 7.4% | 700 ms | 554 ms |
 | VAD baseline, oracle silence (eot-bench) | 49.5% | 7.4% | 700 ms | 600 ms |
-| *Pulse-EoT-hi v0.1 at dev-frozen knobs (th 0.85, delay 0.4 s, timeout 3.5 s): deployable* | *FCR 8.7% at mean latency 1234 ms* | | | |
+| *Pulse-EoT-hi v0.1 at dev-frozen knobs (th 0.85, delay 0.4 s, timeout 3.5 s): deployable* | *FCR 10.3% at mean latency 1107 ms (results/report.md)* | | | |
 
 Soniox has no FCR@300 point because none of its operating points reaches 300 ms mean latency. ultraVAD is a stronger open baseline than Smart Turn, but at 0.7B parameters it is far outside this project's 50 MB / 10 ms-per-hop CPU budget, so it is listed and not run. Full table with Lat@10%, Detect@5% and AUC: [results/report.md](results/report.md).
 
