@@ -22,7 +22,10 @@ from pathlib import Path
 
 import modal
 
-ROOT = Path(__file__).resolve().parents[2]
+_HERE = Path(__file__).resolve()
+# Locally this file is <repo>/models/gpu/modal_app.py; inside the container Modal imports it as
+# /root/modal_app.py, which has no parents[2], so fall back to the mounted repo.
+ROOT = _HERE.parents[2] if len(_HERE.parents) > 2 else Path("/repo")
 VOL_NAME = "pulse-eot-hi-data"
 REMOTE = "/data"
 OUT_REMOTE = "runs/smart_turn_hi_v1"
