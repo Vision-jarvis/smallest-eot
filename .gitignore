@@ -12,3 +12,6 @@ results/cache/
 results/**/traces.parquet
 results/**/*_MOCK/
 /runs/
+
+.env
+.env.*
