@@ -98,13 +98,13 @@ The numbers quoted here come from `results/report.md`. Re-read that file before 
 - **BSD-2:** Smart Turn model. **MIT:** Silero, deveshu. **Apache-2.0:** Vosk.
 - **LiveKit turn detector: not run.** Its licence forbids standalone use outside LiveKit Agents.
 - **Gram Vaani:** academic only. Flag it to Smallest.
-- **Vosk is a stand-in for Pulse:** swapping in Pulse partials is a one-line change (`adapters/pulse_endpointing.py:partials_from_log`).
+- **Vosk was a stand-in for Pulse:** real Pulse partials for the 400 turns are now cached and replayable (`python -m eval.run_bench --asr pulse`); see `docs/pulse_api_notes.md` for the message shapes.
 
 ## 13. Likely hard questions
 - **"Is this better than Smallest's own default? Why would I switch off my 600 ms timer?"**
   - Say it out loud: **not yet, you should not switch.** On the deployed (VAD-timed) curve a 600 ms timer gives 6.9% false cut-offs at 579 ms; v0.1 at dev-frozen knobs gives 10.3% at 1.11 s (`results/eot_bench_hi/clean/deployed.csv`). The model only looks competitive at knobs picked on the test set, which is not deployable. Reason: the dev data is TTS with English pause lengths, so calibration does not transfer. The fix is a real-Hindi dev set (section 14).
   - Smallest's Atoms already ships "Smart Turn Detection" for Hindi (off by default, 3 s wait). That is Smart Turn v3.2-class; on eot-bench hi Smart Turn v3.2 is 42.6% FCR@300. What this repo adds is the measurement of what the timer and the open models actually cost on Hindi.
-  - The real Pulse `eou_timeout_ms` sweep is PENDING the API key: `python -m adapters.pulse_endpointing --estimate-cost` gives 533.7 audio-minutes, $2.13 at $0.004/min. The adapter, real-time streamer and scorer are written and tested against a local mock.
+  - The real Pulse `eou_timeout_ms` sweep ran on 2026-10-24 (dev-test half, REAL): at its default 600 ms Pulse gives 2.0% false cut-offs on holds, 11.5% premature turns, at 931 ms mean latency. It behaves like a silence timer plus about 0.33 s of delivery, so at matched latency it is no better than the timer (README, `results/eot_bench_hi_devtest/pulse_vs_timer.md`).
 - **"Why GBDT and not a neural head?"**
   - Hundreds of trees on 30 features cost microseconds, train in seconds on CPU, export to a 100 KB ONNX graph (`models/export_onnx.py`), and handle the missing-feature sentinel natively.
   - The neural part is the encoder, and its fine-tune is the GPU step.

@@ -4,6 +4,11 @@
 
 Writes results/<set>/<condition>/<detector>/{predictions.parquet, traces.parquet,
 sweep.parquet, summary.json}. predictions.parquet uses eot-bench's exact schema.
+
+--asr pulse replays real Pulse partials (logged arrival times, endpointing=false) instead of
+the Vosk cache. Build that cache first: `python -m adapters.pulse_endpointing --partials
+--half all`, then `python -m adapters.pulse_endpointing --build-asr-cache`. Output goes to
+results/<set>/<condition>/<detector>__asr_pulse/.
 """
 
 from __future__ import annotations
@@ -53,7 +58,7 @@ def load_set(name: str, limit: int | None, half: str = "devtest") -> list[Turn]:
 
 
 def run(detector: str, set_name: str, condition: str, limit: int | None = None, workers: int | None = None,
-        half: str = "devtest", final: bool = False) -> dict:
+        half: str = "devtest", final: bool = False, asr: str = "vosk") -> dict:
     if set_name == "eot_bench_hi":
         split.guard(half, final, f"run_bench {detector} {condition}")
     turns = [conditions.apply(t, condition) for t in load_set(set_name, limit, half)]
@@ -61,11 +66,18 @@ def run(detector: str, set_name: str, condition: str, limit: int | None = None, 
     cache_name = f"{set_name}_{condition}" + (f"_n{limit}" if limit else "")
     if set_name == "eot_bench_hi" and half != "all" and not (asr_cache.CACHE / f"asr_{cache_name}.parquet").exists():
         cache_name += f"_{half}"
-    asr_cache.build(turns, cache_name, PAD_S)
+    if asr == "pulse":
+        if set_name != "eot_bench_hi" or condition != "clean":
+            raise SystemExit("Pulse partials exist only for eot-bench hi, clean condition")
+        cache_name = "eot_bench_hi_pulse"
+        if not (asr_cache.CACHE / f"asr_{cache_name}.parquet").exists():
+            raise SystemExit("missing data/cache/asr_eot_bench_hi_pulse.parquet: run python -m adapters.pulse_endpointing --build-asr-cache")
+    else:
+        asr_cache.build(turns, cache_name, PAD_S)
     parts = asr_cache.load(cache_name)
     det = make(detector)
     tag = set_name if set_name != "eot_bench_hi" or half == "all" else f"{set_name}_{half}"
-    out = ROOT / "results" / tag / condition / detector.replace(":", "__")
+    out = ROOT / "results" / tag / condition / (detector.replace(":", "__") + ("__asr_pulse" if asr == "pulse" else ""))
     out.mkdir(parents=True, exist_ok=True)
     workers = workers or 4  # shared machine: cap at 4 worker processes
     t0 = time.time()
@@ -97,6 +109,7 @@ def run(detector: str, set_name: str, condition: str, limit: int | None = None, 
             "half": half if set_name == "eot_bench_hi" else None,
             "score_point": det.score_point,
             "uses_text": det.uses_text,
+            "asr": asr,
             "wall_s": round(time.time() - t0, 1),
             "ms_per_hop_p50": float(np.percentile(ms, 50)),
             "ms_per_hop_p95": float(np.percentile(ms, 95)),
@@ -118,8 +131,9 @@ def main() -> None:
     ap.add_argument("--workers", type=int, default=4)
     ap.add_argument("--half", default="devtest", choices=split.HALVES, help="eot-bench hi half (eval/split.py)")
     ap.add_argument("--final", action="store_true", help="required to score the sealed half; logged")
+    ap.add_argument("--asr", default="vosk", choices=("vosk", "pulse"), help="partials source (pulse = real Pulse logs)")
     a = ap.parse_args()
-    s = run(a.detector, a.set, a.condition, a.limit, a.workers, a.half, a.final)
+    s = run(a.detector, a.set, a.condition, a.limit, a.workers, a.half, a.final, a.asr)
     print(json.dumps({k: s[k] for k in ("detector", "condition", "FCR@300", "FCR@600", "Lat@5%", "Lat@10%", "Detect@5%", "auc", "ap", "wall_s")}, indent=1))
 
 

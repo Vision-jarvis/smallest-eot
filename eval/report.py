@@ -236,6 +236,9 @@ def main() -> None:
     dep = RES / "eot_bench_hi/clean/deployed.csv"
     if dep.exists():
         md += ["## Deployed (VAD-timed) policy on eot-bench `hi`", "", pd.read_csv(dep).to_markdown(index=False, floatfmt=".3f"), ""]
+    pvt = RES / "eot_bench_hi_devtest/pulse_vs_timer.md"  # python -m eval.pulse_vs_timer
+    if pvt.exists():
+        md += [pvt.read_text(encoding="utf-8"), ""]
     arb = RES / "arbiter/summary.json"
     if arb.exists():
         a = json.loads(arb.read_text())["test"]

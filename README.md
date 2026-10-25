@@ -16,7 +16,20 @@ I wanted to know how much a plain silence timer (Pulse's `eou_timeout_ms`, Atoms
    | 800 ms | 2.9% | 779 ms |
    | 1000 ms | 0.9% | 979 ms |
 
-   Going from 600 ms to 1000 ms cuts false cut-offs from 6.9% to 0.9% and adds 400 ms of dead air on every turn. The real Pulse `eou_timeout_ms` sweep is the same experiment against Pulse itself; it is written and costed (534 audio-minutes, about $3.20 at the $0.006/min streaming list price on the Standard plan) and PENDING an API key. Price note (2026-10-23): the earlier $2.13 used $0.004/min; the current Standard-plan streaming price is $0.006/min (docs.smallest.ai changelog, 28 May 2026), so the estimate is scaled by the 1.5x ratio. `--estimate-cost` still uses the old $0.004 constant in `adapters/pulse_endpointing.py` and will print the lower figure until that constant is updated.
+   Going from 600 ms to 1000 ms cuts false cut-offs from 6.9% to 0.9% and adds 400 ms of dead air on every turn.
+
+   **REAL: Pulse's own `eou_timeout_ms` sweep** (live API, 2026-10-24, `model=pulse, language=hi, endpointing=true`, 200 dev-test turns streamed in real time, `python -m adapters.pulse_endpointing`; full table with intervals in [results/report.md](results/report.md)). The end-of-turn event is the "silence final": the `is_final` transcription Pulse sends after its `speech_ended` event. "Premature turns" = share of turns with any end-of-turn event before the speaker was done (a late event can land after the user resumed, which FCR does not count). The timer columns are our Silero timer on the same 200 turns.
+
+   | eou_timeout_ms | Pulse FCR | Pulse premature turns | Pulse mean latency | Timer FCR | Timer premature turns | Timer mean latency |
+   |---|---|---|---|---|---|---|
+   | 300 | 9.3% | 36.5% | 627 ms | 50.4% | 40.5% | 281 ms |
+   | 400 | 5.2% | 31.5% | 717 ms | 27.0% | 36.0% | 381 ms |
+   | 600 (Pulse default) | 2.0% | 11.5% | 931 ms | 6.0% | 18.0% | 581 ms |
+   | 800 | 0.8% | 4.0% | 1197 ms | 3.2% | 6.5% | 781 ms |
+   | 1000 | 0.8% | 1.5% | 1368 ms | 1.2% | 4.0% | 981 ms |
+   | 1200 | 0.4% | 1.0% | 1577 ms | 1.2% | 1.5% | 1181 ms |
+
+   Pulse behaves like the silence timer shifted by about 0.33 s: its mean latency is the timeout plus 317 to 397 ms (128 ms client chunking, network and server time included), and at matched latency it is no better than the timer: Pulse at 600 ms gives 2.0% FCR and 11.5% premature turns at 931 ms, the timer at 800 to 1000 ms gives 3.2% to 1.2% FCR and 6.5% to 4.0% premature turns at 781 to 981 ms (FCR intervals overlap; n = 248 holds). At its default 600 ms, Pulse cuts into 2.0% of Hindi holds and makes every turn wait 0.93 s on average. One trap: with default settings Pulse also sends word-count finals in the middle of speech (`finalize_on_words`), so an agent that treats every `is_final` as end-of-turn ends 48 to 55% of turns early. API shapes: [docs/pulse_api_notes.md](docs/pulse_api_notes.md). Spend: 346.9 audio-minutes in all (sweep, partials, probe), about $2.08 at $0.006/min.
 3. **Negative results on the open Hindi detectors.** The community Hinglish Smart Turn fine-tune (deveshu, 49.5% FCR@300, 667 ms Lat@5%) is no better than a VAD timer on real Hindi. Our own v0, trained only on Chirp3 TTS Hindi, collapses on human speech (696 ms Lat@5%). Our v0.1 (Smart Turn v3.2 plus a GBDT calibration layer) **matches Smart Turn v3.2, it does not beat it** (paired bootstrap below), and at knobs frozen on dev it is **worse than a 600 ms timer**: 10.3% false cut-offs at 1.11 s mean latency versus 6.9% at 0.58 s.
 
 ## Results tables
@@ -57,18 +70,18 @@ Soniox has no FCR@300 point because none of its operating points reaches 300 ms 
 
 1. **Test-set use.** v0 was scored on all 400 eot-bench `hi` turns, and three design changes (stack the Smart Turn probability, remove the VAD gate, add raw VAD features) were decided after seeing that score. Then v0.1, nine ablations, three channel conditions, the deployed sweep and the slice table were all scored on the same 400. Weights and knobs were never fit on eot-bench, but the 634 ms is a once-contaminated number. From 2026-10-20 the 400 turns are split by a salted hash of the turn id (`eval/split.py`, ids in `eval/eot_bench_hi_split.csv`) into a **dev-test** half for iteration and a **sealed 200-turn half** that nothing is computed on until the one final frozen-knob v1 run. `run_bench` refuses the sealed half without `--final` and logs every such run in `results/SEALED_LEDGER.md` (empty today). The sealed half is "sealed from now on", not "never seen": it was part of the 400 that informed v0 to v0.1.
 2. **No real Hindi speech in training.** Every Hindi training and dev clip is Google Chirp3 TTS (`data/smart_turn_hi` 2196 clips, `data/smart_turn_hi_test` 1165 clips, all `synthetic=True`). The real-human clips are English and Spanish. Hold/EoT pause lengths for dev episodes come from eot-bench **English** statistics. That is why v0 failed and why the GPU step below starts with real Hindi data.
-3. **ASR.** Test-time text comes from Vosk small-hi replayed with logged arrival times, not oracle words. Vosk's Hindi transcripts on this audio are poor (`results/failures.md`), and the cache was built with parallel processes on an emulated CPU, which delays arrival times by a median of tens of ms. The lexical branch is effectively unproven.
+3. **ASR.** Test-time text comes from Vosk small-hi replayed with logged arrival times, not oracle words. Vosk's Hindi transcripts on this audio are poor (`results/failures.md`), and the cache was built with parallel processes on an emulated CPU, which delays arrival times by a median of tens of ms. The lexical branch is effectively unproven. **REAL Pulse partials (2026-10-24):** the 400 turns were replayed through Pulse with `endpointing=false` and the arrival-timed partials are cached (`data/cache/asr_eot_bench_hi_pulse.parquet`, `python -m eval.run_bench --asr pulse`). Swapping them in for Vosk, same v0.1 weights, dev-test half: FCR@300 44.0% vs 43.5%, Lat@5% 595 vs 611 ms, AUC 0.834 vs 0.822; paired bootstrap latency -16.0 ms (95% CI -51.5 to +20.5). Better text does not move v0.1 detectably, which says the lexical branch carries little weight in this model; it was trained on Vosk-style text and has not been refit on Pulse text.
 4. **The demo trace `demo/hi__4344.png` is a failure case** (the model false-fires at the same digit read-out hold as the 600 ms timer). Do not use it as a showcase. The Day-1 picture is the timer-cost curve instead: `python -m demo.timer_cost` writes [results/timer_cost_hi.png](results/timer_cost_hi.png).
 
 ## The GPU path (real Hindi data, one command each)
 
-All three are written and dry-run on CPU; none has been run on a GPU or against a live API.
+Step 2 ran on a Modal L4 (negative result, STATUS.md); step 3 ran against the live Pulse API on 2026-10-24.
 
 | Step | Command | Needs | Verified cost |
 |---|---|---|---|
 | 1. Real-Hindi pause episodes from IndicVoices extempore audio | `python -m bharat_turn.indicvoices_episodes --src data/indicvoices/hindi --inspect`, then without `--inspect` | IndicVoices terms accepted on HF (PENDING) | $0 (CPU, Silero VAD) |
 | 2. Smart Turn v3.2 Hindi fine-tune | `modal run models/gpu/modal_app.py` (CPU check: `python -m models.gpu.finetune --dry-run --fake-indicvoices`) | Modal account, step 1 output | estimate $0.26 (0.18 h on one L4); hard ceiling $2.86 at the 2 h timeout (`results/gpu_cost_estimate.json`) |
-| 3. Pulse `eou_timeout_ms` sweep {300..1200} | `python -m adapters.pulse_endpointing --estimate-cost`, then `SMALLEST_API_KEY=... python -m adapters.pulse_endpointing` | Smallest API key (PENDING) | about $3.20 at $0.006/min (533.7 audio-minutes; $2.13 at the old $0.004/min x 1.5) |
+| 3. Pulse `eou_timeout_ms` sweep {300..1200} | `python -m adapters.pulse_endpointing --estimate-cost`, then `SMALLEST_API_KEY=... python -m adapters.pulse_endpointing` (dev-test half) | Smallest API key (DONE 2026-10-24) | measured: 254.8 audio-minutes, $1.53 at $0.006/min; Pulse partials for all 400 turns: 88.9 audio-minutes, $0.53 |
 
 Step 2 is a real training loop: Smart Turn v3.2 rebuilt in PyTorch with the published fp32 ONNX weights (max |dp| 1.2e-7 against the ONNX, `models/gpu/smart_turn_torch.py`), BCE fine-tune with mu-law and MUSAN augmentation, early stopping on IndicVoices dev Lat@5% computed with the same eot-bench metric code, and fp32 + int8 ONNX export with a parity check. The CPU dry run trains, drives the loss of 16 real-Hindi-style windows from 0.114 to 0.005 in 30 steps (an overfit check, on a fake IndicVoices shard made from TTS clips: a pipeline test, not a result), and exports. The cost estimate uses measured FLOPs (7.2 GFLOP per forward) and measured log-mel cost, with an assumed 15% of the L4's dense bf16 peak; the run itself writes its real wall time and dollar cost to `run_summary.json`.
 
@@ -90,13 +103,14 @@ core/          audio (20 ms PCM16 frames, mu-law, MUSAN mixing), Silero VAD stre
                script-normalised Hindi lexical classes, causal prosody, Whisper log-mel + Smart Turn / deveshu ONNX
 eval/          harness.py (streaming replay), metrics.py (eot-bench-identical sweep), split.py (dev-test / sealed),
                deployed.py (VAD-timed policy), run_bench.py, rescore_devtest.py, conditions.py, bench_cpu.py, report.py
-adapters/      detector protocol, baselines (Silero timer, Smart Turn, deveshu), pulse_endpointing.py (Pulse sweep: PENDING key)
+adapters/      detector protocol, baselines (Silero timer, Smart Turn, deveshu), pulse_endpointing.py (Pulse sweep + partials cache, run on the live API)
 models/        pulse_eot_hi.py (runtime), train.py (v0), train_stacked.py (v0.1), export_onnx.py, artifacts/*.onnx,
                gpu/ (smart_turn_torch.py, finetune.py, modal_app.py, cost_estimate.py: PENDING GPU run)
 arbiter/       speech-onset vs noise classifier on TTS proxy data (not a barge-in result, see above)
 bharat_turn/   labels.py (tested label rules), indicvoices_episodes.py (PENDING data), fake_indicvoices.py (tests only)
 sidecar/       Pulse wire protocol, eot sidecar (Pulse-2.0-shaped events), local mock Pulse server
-results/       report.md, failures.md, eot_bench_hi_devtest/rescored.md, gpu_cost_estimate.json, per-system summary.json
+docs/          pulse_api_notes.md (message shapes seen on the live Pulse API)
+results/       report.md, failures.md, eot_bench_hi_devtest/{rescored,pulse_vs_timer}.md, gpu_cost_estimate.json, per-system summary.json
 ```
 
 Also see [STATUS.md](STATUS.md) (every critique finding and its state), [UNDERSTAND.md](UNDERSTAND.md) (what to be able to defend), [DATA.md](DATA.md) (datasets, models, licences) and [data/README.md](data/README.md) (download steps). Licence: MIT ([LICENSE](LICENSE)); third-party models and data keep their own licences (DATA.md).

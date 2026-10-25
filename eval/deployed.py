@@ -55,12 +55,13 @@ def score_turn(turn: Turn, ev: list[float], pad_s: float) -> dict:
         s = eot[0]
         after = [e for e in ev if e >= s.start - EPS]
         lat = (after[0] - s.start) if after else (turn.duration + pad_s - s.start)
-    return {"n_hold": len(holds), "n_cut": int(sum(cut)), "speech_cutins": int(sum(1 for x in in_span if not x)), "latency": lat}
+    premature = int(any(e < last_end - EPS for e in ev))  # any end-of-turn event before the true end
+    return {"n_hold": len(holds), "n_cut": int(sum(cut)), "speech_cutins": int(sum(1 for x in in_span if not x)), "latency": lat, "premature": premature}
 
 
 def evaluate(turns: list[Turn], traces: pd.DataFrame, knobs: dict, pad_s: float = 3.0) -> dict:
     by_id = {r.id: r for r in traces.itertuples(index=False)}
-    n_hold = n_cut = cutins = 0
+    n_hold = n_cut = cutins = prem = 0
     lats = []
     for turn in turns:
         tr = by_id[turn.id]
@@ -70,6 +71,7 @@ def evaluate(turns: list[Turn], traces: pd.DataFrame, knobs: dict, pad_s: float 
         n_hold += r["n_hold"]
         n_cut += r["n_cut"]
         cutins += r["speech_cutins"]
+        prem += r["premature"]
         if r["latency"] is not None:
             lats.append(r["latency"])
     lats = np.array(lats)
@@ -79,6 +81,7 @@ def evaluate(turns: list[Turn], traces: pd.DataFrame, knobs: dict, pad_s: float 
         "mean_latency": float(lats.mean()),
         "p90_latency": float(np.percentile(lats, 90)),
         "speech_cutins_per_turn": cutins / max(1, len(turns)),
+        "premature_turn_rate": prem / max(1, len(turns)),
         "n_hold": n_hold,
         "n_eot": int(len(lats)),
     }

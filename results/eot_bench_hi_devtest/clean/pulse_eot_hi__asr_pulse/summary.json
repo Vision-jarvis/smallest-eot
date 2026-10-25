@@ -1,0 +1,77 @@
+{
+  "operating_points": {
+    "fcr_at_300ms": {
+      "threshold": 0.35,
+      "action_delay": 0.2,
+      "timeout": 1.0,
+      "cutoff_rate": 0.43951612903225806,
+      "mean_latency": 0.2975000000000001,
+      "detect_rate": 0.93,
+      "n_hold": 248.0,
+      "n_eot": 200.0
+    },
+    "fcr_at_600ms": {
+      "threshold": 0.84,
+      "action_delay": 0.4,
+      "timeout": 1.0,
+      "cutoff_rate": 0.04838709677419355,
+      "mean_latency": 0.5954999999999999,
+      "detect_rate": 0.755,
+      "n_hold": 248.0,
+      "n_eot": 200.0
+    },
+    "lat_at_5pct": {
+      "threshold": 0.84,
+      "action_delay": 0.4,
+      "timeout": 1.0,
+      "cutoff_rate": 0.04838709677419355,
+      "mean_latency": 0.5954999999999999,
+      "detect_rate": 0.755,
+      "n_hold": 248.0,
+      "n_eot": 200.0
+    },
+    "lat_at_10pct": {
+      "threshold": 0.12,
+      "action_delay": 0.5,
+      "timeout": 1.0,
+      "cutoff_rate": 0.0967741935483871,
+      "mean_latency": 0.508,
+      "detect_rate": 0.99,
+      "n_hold": 248.0,
+      "n_eot": 200.0
+    }
+  },
+  "FCR@300": 0.43951612903225806,
+  "FCR@600": 0.04838709677419355,
+  "Lat@5%": 0.5954999999999999,
+  "Lat@10%": 0.508,
+  "Detect@5%": 0.755,
+  "auc": 0.8335685483870969,
+  "ap": 0.7803022896888667,
+  "n_hold": 248,
+  "n_eot": 200,
+  "frozen_knobs": {
+    "threshold": 0.85,
+    "action_delay": 0.4,
+    "timeout": 3.5
+  },
+  "frozen_result": {
+    "fcr": 0.04032258064516129,
+    "mean_latency": 1.2205000000000001,
+    "detect_rate": 0.755
+  },
+  "detector": "pulse_eot_hi",
+  "set": "eot_bench_hi",
+  "condition": "clean",
+  "n_turns": 200,
+  "half": "devtest",
+  "score_point": null,
+  "uses_text": true,
+  "asr": "pulse",
+  "wall_s": 63.9,
+  "ms_per_hop_p50": 1.4881999813951552,
+  "ms_per_hop_p95": 2.8420700691640373,
+  "ms_per_hop_max": 434.50910004321486,
+  "ms_per_scored_hop_p95": 2.8420700691640373,
+  "note_timing": "wall clock with 4 parallel worker processes on one machine; see eval/bench_cpu.py for the single-core benchmark"
+}
