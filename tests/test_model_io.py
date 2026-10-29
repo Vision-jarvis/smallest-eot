@@ -22,6 +22,7 @@ def test_hgb_onnx_parity(tmp_path):
 def test_pulse_url_and_event_shapes():
     u = pulse_url(sample_rate=8000, endpointing=False, eou_timeout_ms=1000)
     assert "model=pulse" in u and "language=hi" in u and "vad_events=true" in u and "eou_timeout_ms=1000" in u
+    assert "no_format_delay=true" in u  # ITN trailing-number hold off (Pulse changelog 2026-10-13)
     with pytest.raises(ValueError):
         pulse_url(eou_timeout_ms=50)
     ev = eot_event("s", 0.912345, 340.2, 12.4801)

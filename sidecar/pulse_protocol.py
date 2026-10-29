@@ -3,7 +3,11 @@
 Endpoint  wss://api.smallest.ai/waves/v1/stt/live   auth header `Authorization: Bearer <key>`
 Query     model=pulse, language=hi, encoding=linear16, sample_rate=8000|16000,
           endpointing=true|false, eou_timeout_ms=100..10000 (defaults 600 with endpointing on,
-          800 with it off), vad_events=true, word_timestamps=true
+          800 with it off), vad_events=true, word_timestamps=true,
+          no_format_delay=true (changelog 2026-10-13: with itn_normalize=true Pulse holds back a
+          number still being dictated at the end of a final and emits it with the next final;
+          no_format_delay=true opts out. The sidecar always sends it, for the same reason it sends
+          endpointing=false: Pulse must not delay text while our model decides the turn.)
 Client -> binary PCM frames (docs recommend 4096-byte chunks); JSON controls
           {"type":"finalize"}, {"type":"close_stream"}, {"type":"ping"}
 Server -> {"type":"transcription","status":"success","session_id":..,"transcript":..,
@@ -33,6 +37,7 @@ def pulse_url(
     eou_timeout_ms: int | None = None,
     vad_events: bool = True,
     word_timestamps: bool = True,
+    no_format_delay: bool = True,
     base: str = PULSE_WS,
 ) -> str:
     q = {
@@ -43,6 +48,7 @@ def pulse_url(
         "endpointing": str(endpointing).lower(),
         "vad_events": str(vad_events).lower(),
         "word_timestamps": str(word_timestamps).lower(),
+        "no_format_delay": str(no_format_delay).lower(),
     }
     if eou_timeout_ms is not None:
         if not 100 <= eou_timeout_ms <= 10000:
