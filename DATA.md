@@ -12,7 +12,7 @@ Nothing in this table is redistributed by this repo: audio, datasets and third-p
 | `pipecat-ai/smart-turn-data-v3.2-train` (Hindi rows, all Chirp3 TTS; real-human English/Spanish rows) | Training (v0, v0.1 head, GPU fine-tune replay) | CC BY 4.0 | `python data/_get_st_hi.py smart-turn-data-v3.2-train 83` | Not redistributed |
 | `pipecat-ai/smart-turn-data-v3.2-test` (Hindi + human rows) | Dev split, v0.1 fusion-head fit | CC BY 4.0 | `python data/_get_st_hi.py smart-turn-data-v3.2-test 10` | Not redistributed |
 | MUSAN noise (OpenSLR 17, HF mirror `FluidInference/musan`) | Noise conditions and training augmentation | CC BY 4.0 | `snapshot_download(allow_patterns=["noise/*"])` | Not redistributed |
-| `ai4bharat/IndicVoices`, `hindi/` (extempore task) | PENDING: real-Hindi pause episodes for the GPU fine-tune | CC BY 4.0, gated (accept terms on HF) | `huggingface-cli download ai4bharat/IndicVoices --repo-type dataset --include "hindi/*"` | Not redistributed; built episodes stay in git-ignored `data/indicvoices_pauses/` |
+| `ai4bharat/IndicVoices`, `hindi/` (extempore task) | Real-Hindi pause episodes for the GPU fine-tune (ran 2026-10-24) | CC BY 4.0, gated (accept terms on HF) | `huggingface-cli download ai4bharat/IndicVoices --repo-type dataset --include "hindi/*"` | Not redistributed; built episodes stay in git-ignored `data/indicvoices_pauses/` |
 | Gram Vaani (OpenSLR 118) | Not used | Academic use only | - | - |
 | CALLFRIEND Hindi (LDC96S52) | Not used | Paid LDC licence | - | - |
 | MUCS 2021 (OpenSLR 104) | Not used | CC BY-SA 4.0 | - | - |

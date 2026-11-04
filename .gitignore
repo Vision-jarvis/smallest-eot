@@ -15,3 +15,6 @@ results/**/*_MOCK/
 
 .env
 .env.*
+
+# fine-tune outputs: only run_summary.json is committed (the 2026-10-24 run exported no model)
+models/artifacts/smart_turn_hi_v1/*.onnx

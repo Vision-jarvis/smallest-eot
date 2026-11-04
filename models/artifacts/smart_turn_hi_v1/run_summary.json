@@ -1,0 +1,80 @@
+{
+  "dry_run": false,
+  "device": "cuda",
+  "gpu_name": "NVIDIA L4",
+  "n_train": 17238,
+  "train_sources": {
+    "indicvoices_hi": 13542,
+    "chirp3_hi": 2196,
+    "human_en_es": 1500
+  },
+  "n_dev_pauses": 816,
+  "n_dev_clips": 1165,
+  "parity_before_training": 5.960464477539063e-08,
+  "history": [
+    {
+      "epoch": 0,
+      "note": "published Smart Turn v3.2, before fine-tuning",
+      "dev_pauses": {
+        "Lat@5%": 0.8000000000000002,
+        "FCR@300": 0.31880448318804483,
+        "FCR@600": 0.11706102117061021,
+        "auc": 0.7645368330299838,
+        "ap": 0.03290291310226073,
+        "n_hold": 803,
+        "n_eot": 13
+      },
+      "dev_clips_auc": 0.9839787485242031
+    },
+    {
+      "epoch": 1,
+      "encoder_frozen": true,
+      "train_loss": 0.4789042952280062,
+      "dev_pauses": {
+        "Lat@5%": 0.8384615384615384,
+        "FCR@300": 0.3275217932752179,
+        "FCR@600": 0.12577833125778332,
+        "auc": 0.8074528211514513,
+        "ap": 0.04392309285864868,
+        "n_hold": 803,
+        "n_eot": 13
+      },
+      "dev_clips_auc": 0.981452184179457
+    },
+    {
+      "epoch": 2,
+      "encoder_frozen": false,
+      "train_loss": 0.3281012679342887,
+      "dev_pauses": {
+        "Lat@5%": 0.8461538461538461,
+        "FCR@300": 0.37484433374844334,
+        "FCR@600": 0.10585305105853052,
+        "auc": 0.8476386627071558,
+        "ap": 0.07289158425407119,
+        "n_hold": 803,
+        "n_eot": 13
+      },
+      "dev_clips_auc": 0.9833736717827627
+    }
+  ],
+  "steps": 538,
+  "train_seconds": 999.031886100769,
+  "samples_per_second": 34.465366400254176,
+  "first_losses": [
+    0.9470198750495911,
+    1.1219558715820312,
+    0.9509730339050293,
+    0.9668713808059692,
+    1.0772430896759033
+  ],
+  "last_losses": [
+    0.46003472805023193,
+    0.25231456756591797,
+    0.9314689636230469,
+    0.2211281955242157,
+    0.4965066611766815
+  ],
+  "result": "no epoch beat the published v3.2 on dev; nothing exported",
+  "wall_hours": 0.3127300899558597,
+  "cost_usd_if_on_L4": 0.4478995403569412
+}

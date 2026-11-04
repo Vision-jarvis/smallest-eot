@@ -2,7 +2,21 @@
 
 I wanted to know how much a plain silence timer (Pulse's `eou_timeout_ms`, Atoms' VAD release) costs a Hindi voice agent, and whether the open learned turn detectors do better. This repo is the yardstick I built for that: a causal, CPU-only streaming replay of LiveKit's eot-bench `hi` set that reproduces the published Hindi rows, a real-VAD timer sweep, and an honest attempt at a Hindi model that so far does **not** beat Smart Turn v3.2 or the timer.
 
-**How this was built.** I wrote the problem statement (problems/06-smallest.md), the metrics and the honesty rules. AI coding agents (Claude Code) wrote the code to that spec; I reviewed it, re-ran the numbers below on my machine, and can walk through any module.
+**Headline** (eot-bench `hi`, 400 real Hindi turns; Lat@5% = mean latency after the true end of turn at 5% false cut-offs on mid-turn pauses, lower is better; eot-bench's definition, best knobs on the test sweep, as in every published row):
+
+| System | Lat@5% |
+|---|---|
+| Silence timer (real Silero VAD) | 700 ms |
+| Smart Turn v3.2 (run by us on CPU, matches the published row) | 639 ms |
+| Ours, Pulse-EoT-hi v0.1 (Smart Turn v3.2 + GBDT calibration head) | 634 ms |
+| LiveKit Turn Detector v1 (published, cloud) | 454 ms |
+
+- 634 vs 639 ms is **no detectable difference** (paired bootstrap on the dev-test half). The deployable number, with knobs frozen on dev, is worse than a timer: **10.3% false cut-offs at 1107 ms** mean latency, versus 6.9% at 579 ms for a 600 ms timer.
+- **REAL Pulse `eou_timeout_ms` sweep** (live API, 200 dev-test turns): Pulse behaves like a silence timer plus about 0.33 s. Treating every `is_final` as end of turn gives **47.5 to 54.5% premature turns** (mid-speech word-count finals).
+
+Links: [problem statement](docs/PROBLEM_STATEMENT.md) | [full report](results/report.md) | [Pulse API notes](docs/pulse_api_notes.md) | [status](STATUS.md) | [datasets and licences](DATA.md) | [demo Space](https://huggingface.co/spaces/rhansri/smallest-eot-demo)
+
+**How this was built.** Built with AI coding agents from my spec: I wrote the problem statement ([docs/PROBLEM_STATEMENT.md](docs/PROBLEM_STATEMENT.md)), the metrics and the honesty rules; AI coding agents (Claude Code) wrote the code to that spec; I reviewed it, re-ran the numbers below on my machine, and can walk through any module.
 
 ## What holds today
 
@@ -29,7 +43,7 @@ I wanted to know how much a plain silence timer (Pulse's `eou_timeout_ms`, Atoms
    | 1000 | 0.8% | 1.5% | 1368 ms | 1.2% | 4.0% | 981 ms |
    | 1200 | 0.4% | 1.0% | 1577 ms | 1.2% | 1.5% | 1181 ms |
 
-   Pulse behaves like the silence timer shifted by about 0.33 s: its mean latency is the timeout plus 317 to 397 ms (128 ms client chunking, network and server time included), and at matched latency it is no better than the timer: Pulse at 600 ms gives 2.0% FCR and 11.5% premature turns at 931 ms, the timer at 800 to 1000 ms gives 3.2% to 1.2% FCR and 6.5% to 4.0% premature turns at 781 to 981 ms (FCR intervals overlap; n = 248 holds). At its default 600 ms, Pulse cuts into 2.0% of Hindi holds and makes every turn wait 0.93 s on average. One trap: with default settings Pulse also sends word-count finals in the middle of speech (`finalize_on_words`), so an agent that treats every `is_final` as end-of-turn ends 48 to 55% of turns early. API shapes: [docs/pulse_api_notes.md](docs/pulse_api_notes.md). Spend: 346.9 audio-minutes in all (sweep, partials, probe), about $2.08 at $0.006/min.
+   Pulse behaves like the silence timer shifted by about 0.33 s: its mean latency is the timeout plus 317 to 397 ms (128 ms client chunking, network and server time included), and at matched latency it is no better than the timer: Pulse at 600 ms gives 2.0% FCR and 11.5% premature turns at 931 ms, the timer at 800 to 1000 ms gives 3.2% to 1.2% FCR and 6.5% to 4.0% premature turns at 781 to 981 ms (FCR intervals overlap; n = 248 holds). At its default 600 ms, Pulse cuts into 2.0% of Hindi holds and makes every turn wait 0.93 s on average. One trap: with default settings Pulse also sends word-count finals in the middle of speech (`finalize_on_words`), so an agent that treats every `is_final` as end-of-turn ends 47.5 to 54.5% of turns early. API shapes: [docs/pulse_api_notes.md](docs/pulse_api_notes.md). Spend: 346.9 audio-minutes in all (sweep, partials, probe), about $2.08 at $0.006/min.
 3. **Negative results on the open Hindi detectors.** The community Hinglish Smart Turn fine-tune (deveshu, 49.5% FCR@300, 667 ms Lat@5%) is no better than a VAD timer on real Hindi. Our own v0, trained only on Chirp3 TTS Hindi, collapses on human speech (696 ms Lat@5%). Our v0.1 (Smart Turn v3.2 plus a GBDT calibration layer) **matches Smart Turn v3.2, it does not beat it** (paired bootstrap below), and at knobs frozen on dev it is **worse than a 600 ms timer**: 10.3% false cut-offs at 1.11 s mean latency versus 6.9% at 0.58 s.
 
 ## Results tables
@@ -81,7 +95,7 @@ Step 2 ran on a Modal L4 (negative result, STATUS.md); step 3 ran against the li
 
 | Step | Command | Needs | Verified cost |
 |---|---|---|---|
-| 1. Real-Hindi pause episodes from IndicVoices extempore audio | `python -m bharat_turn.indicvoices_episodes --src data/indicvoices/hindi --inspect`, then without `--inspect` | IndicVoices terms accepted on HF (PENDING) | $0 (CPU, Silero VAD) |
+| 1. Real-Hindi pause episodes from IndicVoices extempore audio | `python -m bharat_turn.indicvoices_episodes --src data/indicvoices/hindi --inspect`, then without `--inspect` | IndicVoices terms accepted on HF (done 2026-10-24) | $0 (CPU, Silero VAD) |
 | 2. Smart Turn v3.2 Hindi fine-tune | `modal run models/gpu/modal_app.py` (CPU check: `python -m models.gpu.finetune --dry-run --fake-indicvoices`) | Modal account, step 1 output | estimate $0.26 (0.18 h on one L4); hard ceiling $2.86 at the 2 h timeout (`results/gpu_cost_estimate.json`) |
 | 3. Pulse `eou_timeout_ms` sweep {300..1200} | `python -m adapters.pulse_endpointing --estimate-cost`, then `SMALLEST_API_KEY=... python -m adapters.pulse_endpointing` (dev-test half) | Smallest API key (DONE 2026-10-24) | measured: 254.8 audio-minutes, $1.53 at $0.006/min; Pulse partials for all 400 turns: 88.9 audio-minutes, $0.53 |
 
@@ -107,12 +121,14 @@ eval/          harness.py (streaming replay), metrics.py (eot-bench-identical sw
                deployed.py (VAD-timed policy), run_bench.py, rescore_devtest.py, conditions.py, bench_cpu.py, report.py
 adapters/      detector protocol, baselines (Silero timer, Smart Turn, deveshu), pulse_endpointing.py (Pulse sweep + partials cache, run on the live API)
 models/        pulse_eot_hi.py (runtime), train.py (v0), train_stacked.py (v0.1), export_onnx.py, artifacts/*.onnx,
-               gpu/ (smart_turn_torch.py, finetune.py, modal_app.py, cost_estimate.py: PENDING GPU run)
+               gpu/ (smart_turn_torch.py, finetune.py, modal_app.py, cost_estimate.py; ran on a Modal L4, negative)
 arbiter/       speech-onset vs noise classifier on TTS proxy data (not a barge-in result, see above)
-bharat_turn/   labels.py (tested label rules), indicvoices_episodes.py (PENDING data), fake_indicvoices.py (tests only)
+bharat_turn/   labels.py (tested label rules), indicvoices_episodes.py (real-Hindi pause builder), fake_indicvoices.py (tests only)
 sidecar/       Pulse wire protocol, eot sidecar (Pulse-2.0-shaped events), local mock Pulse server
-docs/          pulse_api_notes.md (message shapes seen on the live Pulse API)
+docs/          PROBLEM_STATEMENT.md (the spec this was built to), pulse_api_notes.md (message shapes seen on the live Pulse API)
 results/       report.md, failures.md, eot_bench_hi_devtest/{rescored,pulse_vs_timer}.md, gpu_cost_estimate.json, per-system summary.json
 ```
 
-Also see [STATUS.md](STATUS.md) (every critique finding and its state), [UNDERSTAND.md](UNDERSTAND.md) (what to be able to defend), [DATA.md](DATA.md) (datasets, models, licences) and [data/README.md](data/README.md) (download steps). Licence: MIT ([LICENSE](LICENSE)); third-party models and data keep their own licences (DATA.md).
+Also see [STATUS.md](STATUS.md) (every review finding and its state), [UNDERSTAND.md](UNDERSTAND.md) (what to be able to defend), [DATA.md](DATA.md) (datasets, models, licences) and [data/README.md](data/README.md) (download steps). Licence: MIT ([LICENSE](LICENSE)); third-party models and data keep their own licences ([DATA.md](DATA.md), [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)).
+
+**Credits.** Smart Turn v3.2 and its training data by pipecat-ai / Daily (BSD-2-Clause model, CC BY 4.0 data); Silero VAD by snakers4 (MIT); eot-bench and eot-bench-data by LiveKit (Apache-2.0, CC BY 4.0); Vosk small-hi by Alpha Cephei (Apache-2.0); MUSAN (CC BY 4.0); `deveshu/hinglish-turn-detector` (MIT); IndicVoices by AI4Bharat (CC BY 4.0).
